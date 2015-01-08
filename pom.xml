@@ -14,6 +14,27 @@
   		<artifactId>j3d-core</artifactId>
   		<version>1.3.1</version>
   	</dependency>
+	<dependency>
+  		<groupId>rsb</groupId>
+  		<artifactId>rsb</artifactId>
+  		<version>0.11.0</version>
+  		<exclusions>
+        <exclusion>
+          <groupId>com.google.protobuf</groupId>
+          <artifactId>protobuf-java</artifactId>
+        </exclusion>
+      </exclusions> 
+  	</dependency>
+  	<dependency>
+  		<groupId>log4j</groupId>
+  		<artifactId>log4j</artifactId>
+  		<version>1.2.17</version>
+  	</dependency>
+	<dependency>
+  		<groupId>rsb</groupId>
+  		<artifactId>rst</artifactId>
+  		<version>0.11.1</version>
+  	</dependency>
   </dependencies>
   <repositories>
     <repository>
