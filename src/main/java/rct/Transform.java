@@ -104,4 +104,11 @@ public class Transform {
 	public void setAuthority(String authority) {
 		this.authority = authority;
 	}
+
+	@Override
+	public String toString() {
+		return "Transform[frameParent:" + frameParent + ";frameChild:"
+				+ frameChild + ";time:" + time + ";transform:" + transform
+				+ "]";
+	}
 }

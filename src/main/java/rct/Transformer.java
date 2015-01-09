@@ -3,6 +3,8 @@ package rct;
 import java.util.Set;
 import java.util.concurrent.Future;
 
+import javax.xml.transform.TransformerException;
+
 import rct.impl.TransformCommunicator;
 import rct.impl.TransformerCore;
 
@@ -30,8 +32,9 @@ public class Transformer {
 	 *            across all time. (This cannot be changed after the first
 	 *            call.)
 	 * @return True unless an error occured
+	 * @throws TransformerException 
 	 */
-	public boolean sendTransform(Transform transform, boolean isStatic) {
+	public boolean sendTransform(Transform transform, boolean isStatic) throws TransformerException {
 		return comm.sendTransform(transform, isStatic);
 	}
 
@@ -46,8 +49,9 @@ public class Transformer {
 	 *            across all time. (This cannot be changed after the first
 	 *            call.)
 	 * @return True unless an error occured
+	 * @throws TransformerException 
 	 */
-	public boolean sendTransform(Set<Transform> transforms, boolean isStatic) {
+	public boolean sendTransform(Set<Transform> transforms, boolean isStatic) throws TransformerException {
 		return comm.sendTransform(transforms, isStatic);
 	}
 
