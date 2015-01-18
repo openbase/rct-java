@@ -13,6 +13,13 @@ public class Transform {
 	private long time;
 	private String authority;
 
+	public Transform(Transform transform) {
+		this.transform = new Transform3D(transform.transform);
+		this.frameParent = new String(transform.frameParent);
+		this.frameChild = new String(transform.frameChild);
+		this.time = transform.time;
+	}
+	
 	public Transform(Transform3D transform, String frameParent,
 			String frameChild, long time) {
 		this.transform = transform;

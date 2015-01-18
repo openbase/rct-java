@@ -65,10 +65,11 @@ public class Transformer {
 	 *            The time at which the value of the transform is desired. (0
 	 *            will get the latest)
 	 * @return The transform between the frames
+	 * @throws rct.TransformerException 
 	 *
 	 */
 	public Transform lookupTransform(String target_frame, String source_frame,
-			long time) {
+			long time) throws rct.TransformerException {
 		return core.lookupTransform(target_frame, source_frame, time);
 	}
 
@@ -88,9 +89,10 @@ public class Transformer {
 	 * @param fixed_frame
 	 *            The frame in which to assume the transform is ant in time.
 	 * @return The transform between the frames
+	 * @throws rct.TransformerException 
 	 */
 	public Transform lookupTransform(String target_frame, long target_time,
-			String source_frame, long source_time, String fixed_frame) {
+			String source_frame, long source_time, String fixed_frame) throws rct.TransformerException {
 		return core.lookupTransform(target_frame, target_time, source_frame,
 				source_time, fixed_frame);
 	}

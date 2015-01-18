@@ -4,6 +4,7 @@ import java.util.Set;
 import java.util.concurrent.Future;
 
 import rct.Transform;
+import rct.TransformerException;
 
 public interface TransformerCore {
 
@@ -22,8 +23,9 @@ public interface TransformerCore {
 	 *            across all time. (This cannot be changed after the first
 	 *            call.)
 	 * @return True unless an error occured
+	 * @throws TransformerException 
 	 */
-	boolean setTransform(Transform transform, boolean is_static);
+	boolean setTransform(Transform transform, boolean is_static) throws TransformerException;
 
 	/**
 	 * Get the transform between two frames by frame ID.
@@ -36,10 +38,11 @@ public interface TransformerCore {
 	 *            The time at which the value of the transform is desired. (0
 	 *            will get the latest)
 	 * @return The transform between the frames
+	 * @throws TransformerException 
 	 *
 	 */
 	Transform lookupTransform(String target_frame, String source_frame,
-			long time);
+			long time) throws TransformerException;
 
 	/**
 	 * Get the transform between two frames by frame ID assuming fixed frame.
@@ -57,10 +60,11 @@ public interface TransformerCore {
 	 * @param fixed_frame
 	 *            The frame in which to assume the transform is ant in time.
 	 * @return The transform between the frames
+	 * @throws TransformerException 
 	 *
 	 */
 	Transform lookupTransform(String target_frame, long target_time,
-			String source_frame, long source_time, String fixed_frame);
+			String source_frame, long source_time, String fixed_frame) throws TransformerException;
 
 	/**
 	 * Request the transform between two frames by frame ID.
@@ -130,11 +134,9 @@ public interface TransformerCore {
 	 * @brief Fill the parent of a frame.
 	 * @param frame_id
 	 *            The frame id of the frame in question
-	 * @param parent
-	 *            The reference to the string to fill the parent Returns true
-	 *            unless "NO_PARENT"
+	 * @throws TransformerException 
 	 */
-	String getParent(String frame_id, long time);
+	String getParent(String frame_id, long time) throws TransformerException;
 
 	/**
 	 * Backwards compatability. A way to see what frames have been cached Useful
