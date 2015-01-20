@@ -1,19 +1,23 @@
 package rct.impl;
 
+import org.apache.log4j.Logger;
+
 public class TransformCacheStatic implements TransformCache {
 
 	private TransformInternal storage = new TransformInternal();
-
+	private Logger logger = Logger.getLogger(TransformCacheImpl.class);
+	
 	public TransformCacheStatic() {
 	}
 
 	public boolean getData(long time, TransformInternal data_out) {
-		data_out = storage;
+		data_out.replaceWith(storage);
 		data_out.stamp = time;
 		return true;
 	}
 
 	public boolean insertData(TransformInternal new_data) {
+		logger.debug("insertData(): " + new_data);
 		storage = new_data;
 		return true;
 	}

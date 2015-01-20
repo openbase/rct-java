@@ -52,8 +52,7 @@ public class TransformRequest {
 		}
 
 		public Transform get(long timeout, TimeUnit unit)
-				throws InterruptedException, ExecutionException,
-				TimeoutException {
+				throws InterruptedException, ExecutionException, TimeoutException {
 			synchronized (lock) {
 				if (cancelled) {
 					throw new CancellationException();
@@ -64,6 +63,9 @@ public class TransformRequest {
 					lock.wait(TimeUnit.MILLISECONDS.convert( timeout, unit ));
 					if (cancelled) {
 						throw new CancellationException();
+					}
+					if (transform == null) {
+						throw new TimeoutException();
 					}
 					return transform;
 				}

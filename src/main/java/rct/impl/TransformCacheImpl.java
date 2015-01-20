@@ -10,12 +10,13 @@ public class TransformCacheImpl implements TransformCache {
 	private Logger logger = Logger.getLogger(TransformCacheImpl.class);
 	private long maxStorageTime;
 	private List<TransformInternal> storage_ = new LinkedList<TransformInternal>();
-	
+
 	public TransformCacheImpl(long maxStorageTime) {
 		this.maxStorageTime = maxStorageTime;
 	}
 
-	int findClosest(TransformInternal one, TransformInternal two, long target_time) {
+	int findClosest(TransformInternal one, TransformInternal two,
+			long target_time) {
 		// No values stored
 		if (storage_.isEmpty()) {
 			logger.debug("findClosest() storage is empty");
@@ -115,26 +116,32 @@ public class TransformCacheImpl implements TransformCache {
 		TransformInternal p_temp_2 = new TransformInternal();
 
 		logger.debug("getData() find closest to time " + time);
-		int num_nodes = findClosest(p_temp_1, p_temp_2, time);
-		logger.debug("getData() nodes: " + num_nodes);
-		if (num_nodes == 0) {
-			logger.error("getData() no transform found");
-			return false;
-		} else if (num_nodes == 1) {
-			logger.debug("getData() found exactly one transform");
-			data_out.replaceWith(p_temp_1);
-		} else if (num_nodes == 2) {
-			if (p_temp_1.frame_id == p_temp_2.frame_id) {
-				logger.debug("getData() found two transforms. Interpolate.");
-				interpolate(p_temp_1, p_temp_2, time, data_out);
-			} else {
+		try {
+			int num_nodes = findClosest(p_temp_1, p_temp_2, time);
+			logger.debug("getData() nodes: " + num_nodes);
+			if (num_nodes == 0) {
+				logger.error("getData() no transform found");
+				return false;
+			} else if (num_nodes == 1) {
+				logger.debug("getData() found exactly one transform");
 				data_out.replaceWith(p_temp_1);
+			} else if (num_nodes == 2) {
+				if (p_temp_1.frame_id == p_temp_2.frame_id) {
+					logger.debug("getData() found two transforms. Interpolate.");
+					interpolate(p_temp_1, p_temp_2, time, data_out);
+				} else {
+					data_out.replaceWith(p_temp_1);
+				}
+			} else {
+				assert (false);
 			}
-		} else {
-			assert (false);
-		}
 
-		return true;
+			return true;
+		} catch (RuntimeException e) {
+			logger.error("Could not get data. Reason: " + e.getMessage());
+			logger.debug("Could not get data", e);
+			return false;
+		}
 	}
 
 	public boolean insertData(TransformInternal new_data) {
@@ -156,11 +163,13 @@ public class TransformCacheImpl implements TransformCache {
 			storage_it++;
 		}
 		if (storage_it >= storage_.size()) {
-			logger.debug("add additional storage entry (storage size:" + storage_it + ")");
+			logger.debug("add additional storage entry (storage size:"
+					+ storage_it + ")");
 			storage_.add(new_data);
 		} else {
-			logger.debug("set new data to index " + storage_it + " in storage (size:" + storage_.size()+ ")");
-			storage_.set(storage_it, new_data);
+			logger.debug("set new data to index " + storage_it
+					+ " in storage (size:" + storage_.size() + ")");
+			storage_.add(storage_it, new_data);
 		}
 
 		logger.debug("prune list");
@@ -175,7 +184,8 @@ public class TransformCacheImpl implements TransformCache {
 		logger.debug("storage empty: " + storage_.isEmpty());
 		while (!storage_.isEmpty()
 				&& storage_.get(storage_.size() - 1).stamp + maxStorageTime < latest_time) {
-			logger.debug("remove last. stamp: " + storage_.get(storage_.size() - 1).stamp);
+			logger.debug("remove last. stamp: "
+					+ storage_.get(storage_.size() - 1).stamp);
 			storage_.remove(storage_.size() - 1);
 		}
 	}
@@ -185,15 +195,19 @@ public class TransformCacheImpl implements TransformCache {
 	}
 
 	public int getParent(long time) {
-		TransformInternal p_temp_1 = null;
-		TransformInternal p_temp_2 = null;
+		TransformInternal p_temp_1 = new TransformInternal();
+		TransformInternal p_temp_2 = new TransformInternal();
+		try {
+			int num_nodes = findClosest(p_temp_1, p_temp_2, time);
+			if (num_nodes == 0) {
+				return 0;
+			}
 
-		int num_nodes = findClosest(p_temp_1, p_temp_2, time);
-		if (num_nodes == 0) {
+			return p_temp_1.frame_id;
+		} catch (RuntimeException e) {
+			logger.error("Could not get parent", e);
 			return 0;
 		}
-
-		return p_temp_1.frame_id;
 	}
 
 	public TimeAndFrameID getLatestTimeAndParent() {
@@ -227,6 +241,7 @@ public class TransformCacheImpl implements TransformCache {
 
 	@Override
 	public String toString() {
-		return "TransformCacheImpl[maxStorageTime:" + maxStorageTime + ", storage:" + storage_.size() + "]";
+		return "TransformCacheImpl[maxStorageTime:" + maxStorageTime
+				+ ", storage:" + storage_.size() + "]";
 	}
 }

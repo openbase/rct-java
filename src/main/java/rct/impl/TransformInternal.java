@@ -11,17 +11,19 @@ public class TransformInternal {
 	}
 
 	public TransformInternal(Vector3d translation, Quat4d rotation, int frameNumber,
-			int childFrameNumber) {
+			int childFrameNumber, long time) {
 		this.translation = translation;
 		this.rotation = rotation;
 		this.frame_id = frameNumber;
 		this.child_frame_id = childFrameNumber;
+		this.stamp = time;
 	}
 	
 	public TransformInternal(Transform t, int frameNumber,
 			int childFrameNumber) {
 		this.translation = t.getTranslation();
 		this.rotation = t.getRotationQuat();
+		this.stamp = t.getTime();
 		this.frame_id = frameNumber;
 		this.child_frame_id = childFrameNumber;
 	}
@@ -46,9 +48,9 @@ public class TransformInternal {
 		this.stamp = rhs.stamp;
 	}
 	
-	Vector3d translation;
-	Quat4d rotation;
-	long stamp;
-	int frame_id;
-	int child_frame_id;
+	Vector3d translation = new Vector3d();
+	Quat4d rotation = new Quat4d();;
+	long stamp = 0;
+	int frame_id = 0;
+	int child_frame_id = 0;
 }

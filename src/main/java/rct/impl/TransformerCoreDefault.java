@@ -313,7 +313,11 @@ public class TransformerCoreDefault implements TransformerCore {
 				"lookupTransform argument source_frame", source_frame);
 
 		TransformAccumImpl accum = new TransformAccumImpl();
-		walkToTopParent(accum, time, target_id, source_id);
+		try {
+			walkToTopParent(accum, time, target_id, source_id);
+		} catch(TransformerException e) {
+			throw new TransformerException("No matching transform found", e);
+		}
 
 		Transform3D t3d = new Transform3D(accum.result_quat, accum.result_vec,
 				1.0);

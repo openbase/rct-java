@@ -1,5 +1,7 @@
 package rct.impl;
 
+import javax.xml.transform.TransformerException;
+
 public interface TransformCache {
 
 	public class TimeAndFrameID {

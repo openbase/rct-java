@@ -18,6 +18,7 @@ public class Transform {
 		this.frameParent = new String(transform.frameParent);
 		this.frameChild = new String(transform.frameChild);
 		this.time = transform.time;
+		this.authority = transform.authority;
 	}
 	
 	public Transform(Transform3D transform, String frameParent,
