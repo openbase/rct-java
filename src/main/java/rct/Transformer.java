@@ -3,8 +3,6 @@ package rct;
 import java.util.Set;
 import java.util.concurrent.Future;
 
-import javax.xml.transform.TransformerException;
-
 import rct.impl.TransformCommunicator;
 import rct.impl.TransformerCore;
 

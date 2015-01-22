@@ -11,12 +11,12 @@ import java.util.concurrent.Executors;
 import javax.media.j3d.Transform3D;
 import javax.vecmath.Quat4d;
 import javax.vecmath.Vector3d;
-import javax.xml.transform.TransformerException;
 
 import org.apache.log4j.Logger;
 
 import rct.Transform;
 import rct.TransformerConfig;
+import rct.TransformerException;
 import rct.impl.TransformCommunicator;
 import rct.impl.TransformListener;
 import rct.proto.FrameTransformType.FrameTransform;
@@ -28,6 +28,8 @@ import rsb.InitializeException;
 import rsb.Listener;
 import rsb.RSBException;
 import rsb.Scope;
+import rsb.converter.DefaultConverterRepository;
+import rsb.converter.ProtocolBufferConverter;
 import rst.geometry.RotationType.Rotation;
 import rst.geometry.TranslationType.Translation;
 import rst.timing.TimestampType.Timestamp;
@@ -55,6 +57,15 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
 	}
 
 	public void init(TransformerConfig conf) throws TransformerException {
+		
+		logger.debug("registering converter");
+
+		// Register converter for the FrameTransform type.
+		final ProtocolBufferConverter<FrameTransform> converter = new ProtocolBufferConverter<FrameTransform>(
+				FrameTransform.getDefaultInstance());
+
+		DefaultConverterRepository.getDefaultConverterRepository()
+				.addConverter(converter);
 
 		try {
 			rsbListenerTransform = Factory.getInstance().createListener(
@@ -71,9 +82,13 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
 			rsbInformerTrigger.activate();
 
 		} catch (InitializeException e) {
-			throw new TransformerException("Can not initialize rsb communicator. Reason: " + e.getMessage(), e);
+			throw new TransformerException(
+					"Can not initialize rsb communicator. Reason: "
+							+ e.getMessage(), e);
 		} catch (RSBException e) {
-			throw new TransformerException("Can not initialize rsb communicator. Reason: " + e.getMessage(), e);
+			throw new TransformerException(
+					"Can not initialize rsb communicator. Reason: "
+							+ e.getMessage(), e);
 		}
 
 		try {
@@ -88,25 +103,31 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
 				}
 			}, true);
 		} catch (InterruptedException e) {
-			throw new TransformerException("Can not initialize rsb communicator. Reason: " + e.getMessage(), e);
+			throw new TransformerException(
+					"Can not initialize rsb communicator. Reason: "
+							+ e.getMessage(), e);
 		}
-		
+
 		requestSync();
 	}
 
 	public void requestSync() throws TransformerException {
 		if (rsbInformerTrigger == null || !rsbInformerTrigger.isActive()) {
-			throw new TransformerException("Rsb communicator is not initialized.");
+			throw new TransformerException(
+					"Rsb communicator is not initialized.");
 		}
 
-		logger.debug("Sending sync request trigger from id " + rsbInformerTrigger.getId());
+		logger.debug("Sending sync request trigger from id "
+				+ rsbInformerTrigger.getId());
 
 		// trigger other instances to send transforms
 		Event ev = new Event(rsbInformerTrigger.getScope(), Void.class, null);
 		try {
 			rsbInformerTrigger.send(ev);
 		} catch (RSBException e) {
-			throw new TransformerException("Can not trigger to send transforms. Reason: " + e.getMessage(), e);
+			throw new TransformerException(
+					"Can not trigger to send transforms. Reason: "
+							+ e.getMessage(), e);
 		}
 	}
 
@@ -144,7 +165,8 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
 		return true;
 	}
 
-	public boolean sendTransform(Set<Transform> transforms, boolean isStatic) throws TransformerException {
+	public boolean sendTransform(Set<Transform> transforms, boolean isStatic)
+			throws TransformerException {
 		boolean ret = true;
 		for (Transform t : transforms) {
 			ret &= sendTransform(t, isStatic);

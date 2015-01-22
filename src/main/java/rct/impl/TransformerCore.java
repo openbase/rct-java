@@ -6,7 +6,7 @@ import java.util.concurrent.Future;
 import rct.Transform;
 import rct.TransformerException;
 
-public interface TransformerCore {
+public interface TransformerCore extends TransformListener {
 
 	/** Clear all data */
 	void clear();

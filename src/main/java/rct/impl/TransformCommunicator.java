@@ -2,10 +2,9 @@ package rct.impl;
 
 import java.util.Set;
 
-import javax.xml.transform.TransformerException;
-
 import rct.Transform;
 import rct.TransformerConfig;
+import rct.TransformerException;
 
 public interface TransformCommunicator {
 	

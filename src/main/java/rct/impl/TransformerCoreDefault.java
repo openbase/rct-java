@@ -944,4 +944,13 @@ public class TransformerCoreDefault implements TransformerCore {
 		}
 		return mstring;
 	}
+
+	public void newTransformAvailable(Transform transform, boolean isStatic) {
+		try {
+			setTransform(transform, isStatic);
+		} catch (TransformerException e) {
+			logger.error(e.getMessage());
+			logger.debug(e);
+		}
+	}
 }
