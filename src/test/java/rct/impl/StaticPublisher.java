@@ -1,6 +1,5 @@
 package rct.impl;
 
-import java.io.Console;
 import java.io.IOException;
 
 import javax.media.j3d.Transform3D;
@@ -32,16 +31,11 @@ public class StaticPublisher {
 
 			transformer.sendTransform(t, true);
 			
+			Thread.sleep(1000);
 			System.out.println("Press ENTER to exit");
 			System.in.read();
 			
-		} catch (TransformerException e) {
-			e.printStackTrace();
-			System.exit(1);
-		} catch (TransformerFactoryException e1) {
-			e1.printStackTrace();
-			System.exit(1);
-		} catch (IOException e) {
+		} catch (TransformerException | TransformerFactoryException | IOException | InterruptedException e) {
 			e.printStackTrace();
 			System.exit(1);
 		}

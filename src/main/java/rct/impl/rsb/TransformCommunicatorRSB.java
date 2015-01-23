@@ -217,7 +217,7 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
 		Transform transform = convertPbToTransform(t);
 		transform.setAuthority(authority);
 		logger.debug("Received transform from " + authority);
-		logger.debug("Received transform: " + transform);
+		logger.debug("Received transform: " + transform + " - static: " + isStatic);
 
 		synchronized (lock) {
 			for (TransformListener l : listeners) {

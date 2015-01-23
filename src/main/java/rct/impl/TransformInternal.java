@@ -37,7 +37,13 @@ public class TransformInternal {
 	}
 
 	public String toString() {
-		return "TransformInternal[parent:" + frame_id + ",child:" + child_frame_id + ",stamp:" + stamp  + ",t:" + translation + ",r:" + rotation + "]";
+		String translationStr = String
+				.format("{%.2f; %.2f; %.2f}",
+						translation.x, translation.y, translation.z);
+		String rotationStr = String
+				.format("{w:%.2f; x:%.2f; y:%.2f; z:%.2f}",
+						rotation.w, rotation.x, rotation.y, rotation.z);
+		return "TransformInternal[parent:" + frame_id + ",child:" + child_frame_id + ",stamp:" + stamp  + ",t:" + translationStr + ",r:" + rotationStr + "]";
 	};
 	
 	public void replaceWith(TransformInternal rhs) {

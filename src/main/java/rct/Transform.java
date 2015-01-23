@@ -2,8 +2,10 @@ package rct;
 
 import javax.media.j3d.Transform3D;
 import javax.vecmath.Matrix3d;
+import javax.vecmath.Matrix4d;
 import javax.vecmath.Quat4d;
 import javax.vecmath.Vector3d;
+import javax.vecmath.Vector4d;
 
 public class Transform {
 
@@ -20,7 +22,7 @@ public class Transform {
 		this.time = transform.time;
 		this.authority = transform.authority;
 	}
-	
+
 	public Transform(Transform3D transform, String frameParent,
 			String frameChild, long time) {
 		this.transform = transform;
@@ -115,8 +117,16 @@ public class Transform {
 
 	@Override
 	public String toString() {
-		return "Transform[frameParent:" + frameParent + ";frameChild:"
-				+ frameChild + ";time:" + time + ";transform:" + transform
-				+ "]";
+
+		Matrix4d mat = new Matrix4d();
+		transform.get(mat);
+		String tStr = String
+				.format("{%.2f %.2f %.2f %.2f; %.2f %.2f %.2f %.2f; %.2f %.2f %.2f %.2f; %.2f %.2f %.2f %.2f}",
+						mat.m00, mat.m01, mat.m02, mat.m03, mat.m10, mat.m11,
+						mat.m12, mat.m13, mat.m20, mat.m21, mat.m22, mat.m23,
+						mat.m30, mat.m31, mat.m32, mat.m33);
+
+		return "Transform[parent:" + frameParent + "; child:" + frameChild
+				+ "; time:" + time + "; transform:" + tStr + "]";
 	}
 }
