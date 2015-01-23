@@ -5,8 +5,16 @@ import javax.vecmath.Matrix3d;
 import javax.vecmath.Matrix4d;
 import javax.vecmath.Quat4d;
 import javax.vecmath.Vector3d;
-import javax.vecmath.Vector4d;
 
+/**
+ * A transform from one coordinate frame "parent" to "child". It holds the
+ * transformation itself as a Java3D {@link Transform3D} object, the parent and
+ * child frame IDs, the time at which it was created from the database and the
+ * ID of the authority that generated this object.
+ * 
+ * @author lziegler
+ *
+ */
 public class Transform {
 
 	private Transform3D transform;
@@ -15,7 +23,13 @@ public class Transform {
 	private long time;
 	private String authority;
 
-	public Transform(Transform transform) {
+	/**
+	 * Creates a new transform object as copy from another transform object.
+	 * 
+	 * @param transform
+	 *            The original to copy from.
+	 */
+	public Transform(final Transform transform) {
 		this.transform = new Transform3D(transform.transform);
 		this.frameParent = new String(transform.frameParent);
 		this.frameChild = new String(transform.frameChild);
@@ -23,6 +37,18 @@ public class Transform {
 		this.authority = transform.authority;
 	}
 
+	/**
+	 * Creates a new transform object.
+	 * 
+	 * @param transform
+	 *            The transform itself as Java3D {@link Transform3D}
+	 * @param frameParent
+	 *            The parent coordinate frame ID
+	 * @param frameChild
+	 *            The child coordinate frame ID
+	 * @param time
+	 *            The time at which this object was created.
+	 */
 	public Transform(Transform3D transform, String frameParent,
 			String frameChild, long time) {
 		this.transform = transform;
@@ -31,28 +57,54 @@ public class Transform {
 		this.time = time;
 	}
 
+	/**
+	 * Getter for the geometric transform representation.
+	 * 
+	 * @return The transform as Java3D {@link Transform3D}
+	 */
 	public Transform3D getTransform() {
 		return transform;
 	}
 
+	/**
+	 * Getter for the translation part of the complete transform.
+	 * 
+	 * @return The translation as Java3D Vecmath {@link Vector3d}
+	 */
 	public Vector3d getTranslation() {
 		Vector3d translation = new Vector3d();
 		transform.get(translation);
 		return translation;
 	}
 
+	/**
+	 * Getter for the rotation part of the complete transform.
+	 * 
+	 * @return The rotation as Java3D Vecmath {@link Quat4d}
+	 */
 	public Quat4d getRotationQuat() {
 		Quat4d quat = new Quat4d();
 		transform.get(quat);
 		return quat;
 	}
 
+	/**
+	 * Getter for the rotation part of the complete transform.
+	 * 
+	 * @return The rotation as Java3D Vecmath {@link Matrix3d}
+	 */
 	public Matrix3d getRotationMatrix() {
 		Matrix3d rot = new Matrix3d();
 		transform.get(rot);
 		return rot;
 	}
 
+	/**
+	 * Getter for the rotation part of the complete transform as yaw, pitch and
+	 * roll angles.
+	 * 
+	 * @return The yaw, pitch and roll angles as Java3D Vecmath {@link Vector3d}
+	 */
 	public Vector3d getRotationYPR() {
 
 		Matrix3d rot = getRotationMatrix();
@@ -79,38 +131,87 @@ public class Transform {
 		return new Vector3d(yawOut, pitchOut, rollOut);
 	}
 
+	/**
+	 * Setter for the geometric transform object.
+	 * 
+	 * @param transform
+	 *            The transform as Java3D {@link Transform3D}
+	 */
 	public void setTransform(Transform3D transform) {
 		this.transform = transform;
 	}
 
+	/**
+	 * Getter for the ID of the parent coordinate frame.
+	 * 
+	 * @return The frame ID.
+	 */
 	public String getFrameParent() {
 		return frameParent;
 	}
 
+	/**
+	 * Setter for the ID of the parent coordinate frame.
+	 * 
+	 * @param frameParent
+	 *            The frame ID.
+	 */
 	public void setFrameParent(String frameParent) {
 		this.frameParent = frameParent;
 	}
 
+	/**
+	 * Getter for the ID of the child coordinate frame.
+	 * 
+	 * @return The frame ID.
+	 */
 	public String getFrameChild() {
 		return frameChild;
 	}
 
+	/**
+	 * Setter for the ID of the child coordinate frame.
+	 * 
+	 * @param frameChild
+	 *            The frame ID.
+	 */
 	public void setFrameChild(String frameChild) {
 		this.frameChild = frameChild;
 	}
 
+	/**
+	 * Getter for the timestamp of the moment this object was created.
+	 * 
+	 * @return The timestamp in milliseconds
+	 */
 	public long getTime() {
 		return time;
 	}
 
+	/**
+	 * Setter for the timestamp of the moment this object was created.
+	 * 
+	 * @return The timestamp in milliseconds
+	 */
 	public void setTime(long time) {
 		this.time = time;
 	}
 
+	/**
+	 * Getter for the ID of the authority that created this object.
+	 * 
+	 * @return The authority ID
+	 */
 	public String getAuthority() {
 		return authority;
 	}
 
+	/**
+	 * Setter for the ID of the authority that created this object.
+	 * 
+	 * @param authority
+	 *            The authority ID
+	 */
 	public void setAuthority(String authority) {
 		this.authority = authority;
 	}

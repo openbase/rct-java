@@ -914,12 +914,6 @@ public class TransformerCoreDefault implements TransformerCore {
 
 	}
 
-	private boolean canTransformInternal(int target_id, int source_id, long time) {
-		synchronized (lock) {
-			return canTransformNoLock(target_id, source_id, time);
-		}
-	}
-
 	private String allFramesAsStringNoLock() {
 
 		TransformInternal temp = new TransformInternal();

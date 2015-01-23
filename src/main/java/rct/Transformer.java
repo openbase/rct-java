@@ -6,12 +6,35 @@ import java.util.concurrent.Future;
 import rct.impl.TransformCommunicator;
 import rct.impl.TransformerCore;
 
+/**
+ * This is the central class for publishing and receiving transforms. Use
+ * {@link TransformerFactory} to create an instance of this. Any instance should
+ * exist as long as any publishing or receiving action is planned, because it
+ * caches the known coordinate frames tree including the defined history.
+ * Creation of the frame tree creates overhead and should not be done on a
+ * regular basis. Instead the transformer should exist for a longer period while
+ * updating itself when changes to the frame tree occur.
+ * 
+ * @author lziegler
+ *
+ */
 public class Transformer {
 
 	private TransformerCore core;
 	private TransformCommunicator comm;
 	private TransformerConfig conf;
 
+	/**
+	 * Creates a new transformer. Attention: This should not be called by the
+	 * user, use {@link TransformerFactory} in order to create a transformer.
+	 * 
+	 * @param core
+	 *            The core functionality implementation
+	 * @param comm
+	 *            The communicator implementation
+	 * @param conf
+	 *            The configuration
+	 */
 	public Transformer(TransformerCore core, TransformCommunicator comm,
 			TransformerConfig conf) {
 		this.core = core;
@@ -23,34 +46,30 @@ public class Transformer {
 	 * @brief Add transform information to the rct data structure
 	 * @param transform
 	 *            The transform to store
-	 * @param authority
-	 *            The source of the information for this transform
 	 * @param isStatic
 	 *            Record this transform as a static transform. It will be good
 	 *            across all time. (This cannot be changed after the first
 	 *            call.)
-	 * @return True unless an error occured
-	 * @throws TransformerException 
+	 * @throws TransformerException
 	 */
-	public boolean sendTransform(Transform transform, boolean isStatic) throws TransformerException {
-		return comm.sendTransform(transform, isStatic);
+	public void sendTransform(Transform transform, boolean isStatic)
+			throws TransformerException {
+		comm.sendTransform(transform, isStatic);
 	}
 
 	/**
 	 * @brief Add transform information to the rct data structure
 	 * @param transform
 	 *            The transform to store
-	 * @param authority
-	 *            The source of the information for this transform
 	 * @param is_static
 	 *            Record this transform as a static transform. It will be good
 	 *            across all time. (This cannot be changed after the first
 	 *            call.)
-	 * @return True unless an error occured
-	 * @throws TransformerException 
+	 * @throws TransformerException
 	 */
-	public boolean sendTransform(Set<Transform> transforms, boolean isStatic) throws TransformerException {
-		return comm.sendTransform(transforms, isStatic);
+	public void sendTransform(Set<Transform> transforms, boolean isStatic)
+			throws TransformerException {
+		comm.sendTransform(transforms, isStatic);
 	}
 
 	/**
@@ -63,11 +82,11 @@ public class Transformer {
 	 *            The time at which the value of the transform is desired. (0
 	 *            will get the latest)
 	 * @return The transform between the frames
-	 * @throws rct.TransformerException 
+	 * @throws TransformerException
 	 *
 	 */
 	public Transform lookupTransform(String target_frame, String source_frame,
-			long time) throws rct.TransformerException {
+			long time) throws TransformerException {
 		return core.lookupTransform(target_frame, source_frame, time);
 	}
 
@@ -85,12 +104,14 @@ public class Transformer {
 	 *            The time at which the source_frame should be evaluated. (0
 	 *            will get the latest)
 	 * @param fixed_frame
-	 *            The frame in which to assume the transform is ant in time.
+	 *            The frame in which to assume the transform is constant in
+	 *            time.
 	 * @return The transform between the frames
-	 * @throws rct.TransformerException 
+	 * @throws TransformerException
 	 */
 	public Transform lookupTransform(String target_frame, long target_time,
-			String source_frame, long source_time, String fixed_frame) throws rct.TransformerException {
+			String source_frame, long source_time, String fixed_frame)
+			throws TransformerException {
 		return core.lookupTransform(target_frame, target_time, source_frame,
 				source_time, fixed_frame);
 	}
@@ -126,7 +147,8 @@ public class Transformer {
 	 *            transform failed, if not NULL
 	 * @return True if the transform is possible, false otherwise
 	 */
-	public boolean canTransform(String target_frame, String source_frame, long time) {
+	public boolean canTransform(String target_frame, String source_frame,
+			long time) {
 		return core.canTransform(target_frame, source_frame, time);
 	}
 
@@ -142,9 +164,6 @@ public class Transformer {
 	 *            The time from which to transform
 	 * @param fixed_frame
 	 *            The frame in which to treat the transform as ant in time
-	 * @param error_msg
-	 *            A pointer to a string which will be filled with why the
-	 *            transform failed, if not NULL
 	 * @return True if the transform is possible, false otherwise
 	 */
 	public boolean canTransform(String target_frame, long target_time,
@@ -157,8 +176,8 @@ public class Transformer {
 		return conf;
 	}
 
-	public String getAuthorityName() {
-		return comm.getAuthorityName();
+	public String getAuthorityID() {
+		return comm.getAuthorityID();
 	}
 
 }

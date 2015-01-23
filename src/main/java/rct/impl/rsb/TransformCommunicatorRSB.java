@@ -131,7 +131,7 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
 		}
 	}
 
-	public boolean sendTransform(Transform transform, boolean isStatic)
+	public void sendTransform(Transform transform, boolean isStatic)
 			throws TransformerException {
 		if (rsbInformerTransform == null || !rsbInformerTransform.isActive()) {
 			throw new TransformerException("RSB interface is not initialized!");
@@ -162,16 +162,14 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
 						+ transform + ". Reason: " + e.getMessage(), e);
 			}
 		}
-		return true;
 	}
 
-	public boolean sendTransform(Set<Transform> transforms, boolean isStatic)
+	public void sendTransform(Set<Transform> transforms, boolean isStatic)
 			throws TransformerException {
-		boolean ret = true;
 		for (Transform t : transforms) {
-			ret &= sendTransform(t, isStatic);
+			sendTransform(t, isStatic);
 		}
-		return ret;
+		return;
 	}
 
 	public void addTransformListener(TransformListener listener) {
@@ -192,7 +190,7 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
 		}
 	}
 
-	public String getAuthorityName() {
+	public String getAuthorityID() {
 		return rsbInformerTransform.getId().toString();
 	}
 
