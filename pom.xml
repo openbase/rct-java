@@ -31,7 +31,7 @@
 		<dependency>
 			<groupId>rsb</groupId>
 			<artifactId>rsb</artifactId>
-			<version>0.11.0</version>
+			<version>[0.11,0.12-SNAPSHOT)</version>
 			<exclusions>
 				<exclusion>
 					<groupId>com.google.protobuf</groupId>
@@ -40,20 +40,25 @@
 			</exclusions>
 		</dependency>
 		<dependency>
+			<groupId>rsb</groupId>
+			<artifactId>rst</artifactId>
+			<version>[0.11,0.12-SNAPSHOT)</version>
+		</dependency>
+		<dependency>
 			<groupId>log4j</groupId>
 			<artifactId>log4j</artifactId>
 			<version>1.2.17</version>
 		</dependency>
-		<dependency>
-			<groupId>rsb</groupId>
-			<artifactId>rst</artifactId>
-			<version>0.11.1</version>
-		</dependency>
 	</dependencies>
+	
 	<repositories>
 		<repository>
 			<id>geotoolkit.org</id>
 			<url>http://maven.geotoolkit.org/</url>
+		</repository>
+		<repository>
+			<id>citec</id>
+			<url>https://repo.cit-ec.uni-bielefeld.de/content/groups/proxy/</url>
 		</repository>
 	</repositories>
 </project>
