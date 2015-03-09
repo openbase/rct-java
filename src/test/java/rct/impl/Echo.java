@@ -18,7 +18,7 @@ public class Echo {
 		}
 		try {
 			Transformer transformer = TransformerFactory.getInstance()
-					.createTransformer();
+					.createTransformer("echo");
 
 			Thread.sleep(1000);
 			

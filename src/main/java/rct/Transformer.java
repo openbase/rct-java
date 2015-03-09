@@ -52,9 +52,9 @@ public class Transformer {
 	 *            call.)
 	 * @throws TransformerException
 	 */
-	public void sendTransform(Transform transform, boolean isStatic)
+	public void sendTransform(Transform transform, TransformType type)
 			throws TransformerException {
-		comm.sendTransform(transform, isStatic);
+		comm.sendTransform(transform, type);
 	}
 
 	/**
@@ -67,9 +67,9 @@ public class Transformer {
 	 *            call.)
 	 * @throws TransformerException
 	 */
-	public void sendTransform(Set<Transform> transforms, boolean isStatic)
+	public void sendTransform(Set<Transform> transforms, TransformType type)
 			throws TransformerException {
-		comm.sendTransform(transforms, isStatic);
+		comm.sendTransform(transforms, type);
 	}
 
 	/**

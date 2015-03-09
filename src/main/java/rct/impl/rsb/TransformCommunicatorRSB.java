@@ -15,6 +15,7 @@ import javax.vecmath.Vector3d;
 import org.apache.log4j.Logger;
 
 import rct.Transform;
+import rct.TransformType;
 import rct.TransformerConfig;
 import rct.TransformerException;
 import rct.impl.TransformCommunicator;
@@ -36,8 +37,15 @@ import rst.timing.TimestampType.Timestamp;
 
 public class TransformCommunicatorRSB implements TransformCommunicator {
 
+	private static final String RCT_SCOPE_SUFFIX_STATIC = "static";
+	private static final String RCT_SCOPE_SUFFIX_DYNAMIC = "dynamic";
+	private static final String RCT_SCOPE_SEPARATOR = "/";
 	public static final String RCT_SCOPE_TRANSFORM = "/rct/transform";
+	public static final String RCT_SCOPE_TRANSFORM_STATIC = RCT_SCOPE_TRANSFORM + RCT_SCOPE_SEPARATOR + RCT_SCOPE_SUFFIX_STATIC;
+	public static final String RCT_SCOPE_TRANSFORM_DYNAMIC = RCT_SCOPE_TRANSFORM + RCT_SCOPE_SEPARATOR + RCT_SCOPE_SUFFIX_DYNAMIC;
 	public static final String RCT_SCOPE_TRIGGER = "/rct/trigger";
+	
+	private static final String USER_INFO_AUTHORITY = "authority";
 
 	private Listener rsbListenerTransform;
 	private Informer<FrameTransform> rsbInformerTransform;
@@ -45,15 +53,17 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
 	private Informer<Void> rsbInformerTrigger;
 	private Set<TransformListener> listeners = new HashSet<TransformListener>();
 
-	private Map<String, FrameTransform> sendCache = new HashMap<String, FrameTransform>();
+	private Map<String, FrameTransform> sendCacheDynamic = new HashMap<String, FrameTransform>();
 	private Map<String, FrameTransform> sendCacheStatic = new HashMap<String, FrameTransform>();
 	private Object lock = new Object();
+	private String name;
 	ExecutorService executor = Executors.newCachedThreadPool();
 
 	private static Logger logger = Logger
 			.getLogger(TransformCommunicatorRSB.class);
 
-	public TransformCommunicatorRSB() {
+	public TransformCommunicatorRSB(String name) {
+		this.name = name;
 	}
 
 	public void init(TransformerConfig conf) throws TransformerException {
@@ -131,7 +141,7 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
 		}
 	}
 
-	public void sendTransform(Transform transform, boolean isStatic)
+	public void sendTransform(Transform transform, TransformType type)
 			throws TransformerException {
 		if (rsbInformerTransform == null || !rsbInformerTransform.isActive()) {
 			throw new TransformerException("RSB interface is not initialized!");
@@ -147,14 +157,22 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
 		synchronized (lock) {
 			Event event = new Event();
 			event.setData(t);
+			event.getMetaData().setUserInfo("autority", name);
 			event.setType(FrameTransform.class);
-			if (isStatic) {
+			
+			switch (type) {
+			case STATIC:
 				sendCacheStatic.put(cacheKey, t);
-				event.setScope(new Scope(RCT_SCOPE_TRANSFORM + "/static"));
-			} else {
-				sendCache.put(cacheKey, t);
-				event.setScope(new Scope(RCT_SCOPE_TRANSFORM + "/nonstatic"));
+				event.setScope(new Scope(RCT_SCOPE_TRANSFORM_STATIC));
+				break;
+			case DYNAMIC:
+				sendCacheDynamic.put(cacheKey, t);
+				event.setScope(new Scope(RCT_SCOPE_TRANSFORM_DYNAMIC));
+				break;
+			default:
+				throw new TransformerException("Unknown TransformType: " + type.name());
 			}
+
 			try {
 				rsbInformerTransform.send(event);
 			} catch (RSBException e) {
@@ -164,10 +182,10 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
 		}
 	}
 
-	public void sendTransform(Set<Transform> transforms, boolean isStatic)
+	public void sendTransform(Set<Transform> transforms, TransformType type)
 			throws TransformerException {
 		for (Transform t : transforms) {
-			sendTransform(t, isStatic);
+			sendTransform(t, type);
 		}
 		return;
 	}
@@ -191,7 +209,7 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
 	}
 
 	public String getAuthorityID() {
-		return rsbInformerTransform.getId().toString();
+		return name;
 	}
 
 	private void frameTransformCallback(Event event) {
@@ -208,9 +226,9 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
 
 		FrameTransform t = (FrameTransform) event.getData();
 
-		String authority = event.getId().getParticipantId().toString();
+		String authority = event.getMetaData().getUserInfo(USER_INFO_AUTHORITY);
 		List<String> scopeComponents = event.getScope().getComponents();
-		boolean isStatic = !scopeComponents.contains("nonstatic");
+		boolean isStatic = !scopeComponents.contains(RCT_SCOPE_SUFFIX_DYNAMIC);
 
 		Transform transform = convertPbToTransform(t);
 		transform.setAuthority(authority);
@@ -240,32 +258,33 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
 
 	private void publishCache() {
 		logger.debug("Publishing cache from " + rsbInformerTransform.getId());
-		for (String key : sendCache.keySet()) {
+		for (String key : sendCacheDynamic.keySet()) {
 
 			Event event = new Event();
-			event.setData(sendCache.get(key));
-			event.setScope(new Scope(RCT_SCOPE_TRANSFORM + "/nonstatic"));
+			event.setData(sendCacheDynamic.get(key));
+			event.getMetaData().setUserInfo(USER_INFO_AUTHORITY, name);
+			event.setScope(new Scope(RCT_SCOPE_TRANSFORM_DYNAMIC));
 			event.setType(FrameTransform.class);
 			try {
 				rsbInformerTransform.send(event);
 			} catch (RSBException e) {
 				logger.error(
 						"Can not publish cached transform "
-								+ sendCache.get(key) + ". Reason: "
+								+ sendCacheDynamic.get(key) + ". Reason: "
 								+ e.getMessage(), e);
 			}
 		}
 		for (String key : sendCacheStatic.keySet()) {
 			Event event = new Event();
 			event.setData(sendCacheStatic.get(key));
-			event.setScope(new Scope(RCT_SCOPE_TRANSFORM + "/static"));
+			event.setScope(new Scope(RCT_SCOPE_TRANSFORM_STATIC));
 			event.setType(FrameTransform.class);
 			try {
 				rsbInformerTransform.send(event);
 			} catch (RSBException e) {
 				logger.error(
 						"Can not publish cached transform "
-								+ sendCache.get(key) + ". Reason: "
+								+ sendCacheDynamic.get(key) + ". Reason: "
 								+ e.getMessage(), e);
 			}
 		}

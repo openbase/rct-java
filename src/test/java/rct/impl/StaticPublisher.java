@@ -9,6 +9,7 @@ import javax.vecmath.Vector3d;
 import org.apache.log4j.BasicConfigurator;
 
 import rct.Transform;
+import rct.TransformType;
 import rct.Transformer;
 import rct.TransformerException;
 import rct.TransformerFactory;
@@ -23,13 +24,13 @@ public class StaticPublisher {
 		BasicConfigurator.configure();
 		
 		try {
-			transformer = TransformerFactory.getInstance().createTransformer();
+			transformer = TransformerFactory.getInstance().createTransformer("static-publisher-java");
 		
 		
 			Transform3D transform = new Transform3D(new Quat4f(1, 0, 0, 1), new Vector3d(1, 2, 3), 1.0);
 			Transform t = new Transform(transform, "start", "foo", System.currentTimeMillis());
 
-			transformer.sendTransform(t, true);
+			transformer.sendTransform(t, TransformType.STATIC);
 			
 			Thread.sleep(1000);
 			System.out.println("Press ENTER to exit");
