@@ -3,7 +3,7 @@ package rct.impl;
 import org.apache.log4j.BasicConfigurator;
 
 import rct.Transform;
-import rct.Transformer;
+import rct.TransformReceiver;
 import rct.TransformerFactory;
 
 public class Echo {
@@ -17,8 +17,8 @@ public class Echo {
 			System.exit(1);
 		}
 		try {
-			Transformer transformer = TransformerFactory.getInstance()
-					.createTransformer("echo");
+			TransformReceiver transformer = TransformerFactory.getInstance()
+					.createTransformReceiver();
 
 			Thread.sleep(1000);
 			

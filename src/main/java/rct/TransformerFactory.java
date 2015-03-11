@@ -38,31 +38,31 @@ public class TransformerFactory {
 			super(msg, cause);
 		}
 	}
-	public Transformer createTransformer(String name) throws TransformerFactoryException {
-		return createTransformer(name, new TransformerConfig());
+	public TransformReceiver createTransformReceiver() throws TransformerFactoryException {
+		return createTransformReceiver(new TransformerConfig());
 	}
-	public Transformer createTransformer(String name, TransformerConfig config) throws TransformerFactoryException {
+	public TransformReceiver createTransformReceiver(TransformerConfig config) throws TransformerFactoryException {
 		Set<TransformListener> listeners = new HashSet<TransformListener>();
-		return createTransformer(name, listeners, config);
+		return createTransformReceiver(listeners, config);
 	}
-	public Transformer createTransformer(String name, TransformListener listener) throws TransformerFactoryException {
-		return createTransformer(name, listener, new TransformerConfig());
+	public TransformReceiver createTransformReceiver(TransformListener listener) throws TransformerFactoryException {
+		return createTransformReceiver(listener, new TransformerConfig());
 	}
-	public Transformer createTransformer(String name, Set<TransformListener> listeners) throws TransformerFactoryException {
-		return createTransformer(name, listeners, new TransformerConfig());
+	public TransformReceiver createTransformReceiver(Set<TransformListener> listeners) throws TransformerFactoryException {
+		return createTransformReceiver(listeners, new TransformerConfig());
 	}
 
-	public Transformer createTransformer(String name, TransformListener listener, TransformerConfig config) throws TransformerFactoryException {
+	public TransformReceiver createTransformReceiver(TransformListener listener, TransformerConfig config) throws TransformerFactoryException {
 		Set<TransformListener> listeners = new HashSet<TransformListener>();
 		listeners.add(listener);
-		return createTransformer(name, listeners, config);
+		return createTransformReceiver(listeners, config);
 	}
-	public Transformer createTransformer(String name, Set<TransformListener> listeners, TransformerConfig config) throws TransformerFactoryException {
+	public TransformReceiver createTransformReceiver(Set<TransformListener> listeners, TransformerConfig config) throws TransformerFactoryException {
 		
 		// TODO when there is more than one communicator or core implementation, this
 		// has to be more sophisticated
 		TransformerCore core = new TransformerCoreDefault(config.getCacheTime());
-		TransformCommunicator comm = new TransformCommunicatorRSB(name);
+		TransformCommunicator comm = new TransformCommunicatorRSB("read-only");
 		try {
 			comm.addTransformListener(core);
 			comm.init(config);
@@ -70,6 +70,24 @@ public class TransformerFactory {
 			throw new TransformerFactoryException("Can not create Transformer because communicator can not be initialized", e);
 		}
 		
-		return new Transformer(core, comm, config);
+		return new TransformReceiver(core, comm, config);
+	}
+	
+	public TransformPublisher createTransformPublisher(String name) throws TransformerFactoryException {
+		return createTransformPublisher(name, new TransformerConfig());
+	}
+	
+	public TransformPublisher createTransformPublisher(String name, TransformerConfig config) throws TransformerFactoryException {
+		
+		// TODO when there is more than one communicator or core implementation, this
+		// has to be more sophisticated
+		TransformCommunicator comm = new TransformCommunicatorRSB(name);
+		try {
+			comm.init(config);
+		} catch (TransformerException e) {
+			throw new TransformerFactoryException("Can not create Transformer because communicator can not be initialized", e);
+		}
+		
+		return new TransformPublisher(comm, config);
 	}
 }

@@ -1,15 +1,14 @@
 package rct;
 
-import java.util.Set;
 import java.util.concurrent.Future;
 
 import rct.impl.TransformCommunicator;
 import rct.impl.TransformerCore;
 
 /**
- * This is the central class for publishing and receiving transforms. Use
+ * This is the central class for receiving transforms. Use
  * {@link TransformerFactory} to create an instance of this. Any instance should
- * exist as long as any publishing or receiving action is planned, because it
+ * exist as long as any receiving action is planned, because it
  * caches the known coordinate frames tree including the defined history.
  * Creation of the frame tree creates overhead and should not be done on a
  * regular basis. Instead the transformer should exist for a longer period while
@@ -18,11 +17,13 @@ import rct.impl.TransformerCore;
  * @author lziegler
  *
  */
-public class Transformer {
+public class TransformReceiver {
 
 	private TransformerCore core;
-	private TransformCommunicator comm;
 	private TransformerConfig conf;
+	
+	@SuppressWarnings("unused")
+	private TransformCommunicator comm;
 
 	/**
 	 * Creates a new transformer. Attention: This should not be called by the
@@ -35,41 +36,11 @@ public class Transformer {
 	 * @param conf
 	 *            The configuration
 	 */
-	public Transformer(TransformerCore core, TransformCommunicator comm,
+	public TransformReceiver(TransformerCore core, TransformCommunicator comm,
 			TransformerConfig conf) {
 		this.core = core;
 		this.conf = conf;
 		this.comm = comm;
-	}
-
-	/**
-	 * @brief Add transform information to the rct data structure
-	 * @param transform
-	 *            The transform to store
-	 * @param isStatic
-	 *            Record this transform as a static transform. It will be good
-	 *            across all time. (This cannot be changed after the first
-	 *            call.)
-	 * @throws TransformerException
-	 */
-	public void sendTransform(Transform transform, TransformType type)
-			throws TransformerException {
-		comm.sendTransform(transform, type);
-	}
-
-	/**
-	 * @brief Add transform information to the rct data structure
-	 * @param transform
-	 *            The transform to store
-	 * @param is_static
-	 *            Record this transform as a static transform. It will be good
-	 *            across all time. (This cannot be changed after the first
-	 *            call.)
-	 * @throws TransformerException
-	 */
-	public void sendTransform(Set<Transform> transforms, TransformType type)
-			throws TransformerException {
-		comm.sendTransform(transforms, type);
 	}
 
 	/**
@@ -175,9 +146,4 @@ public class Transformer {
 	public TransformerConfig getConfig() {
 		return conf;
 	}
-
-	public String getAuthorityID() {
-		return comm.getAuthorityID();
-	}
-
 }

@@ -10,21 +10,21 @@ import org.apache.log4j.BasicConfigurator;
 
 import rct.Transform;
 import rct.TransformType;
-import rct.Transformer;
+import rct.TransformPublisher;
 import rct.TransformerException;
 import rct.TransformerFactory;
 import rct.TransformerFactory.TransformerFactoryException;
 
 public class StaticPublisher {
 	
-	private static Transformer transformer;
+	private static TransformPublisher transformer;
 
 	public static void main(String[] args) {
 		
 		BasicConfigurator.configure();
 		
 		try {
-			transformer = TransformerFactory.getInstance().createTransformer("static-publisher-java");
+			transformer = TransformerFactory.getInstance().createTransformPublisher("static-publisher-java");
 		
 		
 			Transform3D transform = new Transform3D(new Quat4f(1, 0, 0, 1), new Vector3d(1, 2, 3), 1.0);
