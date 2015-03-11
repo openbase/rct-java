@@ -41,16 +41,18 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
 	private static final String RCT_SCOPE_SUFFIX_DYNAMIC = "dynamic";
 	private static final String RCT_SCOPE_SEPARATOR = "/";
 	public static final String RCT_SCOPE_TRANSFORM = "/rct/transform";
-	public static final String RCT_SCOPE_TRANSFORM_STATIC = RCT_SCOPE_TRANSFORM + RCT_SCOPE_SEPARATOR + RCT_SCOPE_SUFFIX_STATIC;
-	public static final String RCT_SCOPE_TRANSFORM_DYNAMIC = RCT_SCOPE_TRANSFORM + RCT_SCOPE_SEPARATOR + RCT_SCOPE_SUFFIX_DYNAMIC;
-	public static final String RCT_SCOPE_TRIGGER = "/rct/trigger";
-	
+	public static final String RCT_SCOPE_TRANSFORM_STATIC = RCT_SCOPE_TRANSFORM
+			+ RCT_SCOPE_SEPARATOR + RCT_SCOPE_SUFFIX_STATIC;
+	public static final String RCT_SCOPE_TRANSFORM_DYNAMIC = RCT_SCOPE_TRANSFORM
+			+ RCT_SCOPE_SEPARATOR + RCT_SCOPE_SUFFIX_DYNAMIC;
+	public static final String RCT_SCOPE_SYNC = "/rct/sync";
+
 	private static final String USER_INFO_AUTHORITY = "authority";
 
 	private Listener rsbListenerTransform;
 	private Informer<FrameTransform> rsbInformerTransform;
-	private Listener rsbListenerTrigger;
-	private Informer<Void> rsbInformerTrigger;
+	private Listener rsbListenerSync;
+	private Informer<Void> rsbInformerSync;
 	private Set<TransformListener> listeners = new HashSet<TransformListener>();
 
 	private Map<String, FrameTransform> sendCacheDynamic = new HashMap<String, FrameTransform>();
@@ -67,7 +69,7 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
 	}
 
 	public void init(TransformerConfig conf) throws TransformerException {
-		
+
 		logger.debug("registering converter");
 
 		// Register converter for the FrameTransform type.
@@ -80,16 +82,16 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
 		try {
 			rsbListenerTransform = Factory.getInstance().createListener(
 					RCT_SCOPE_TRANSFORM);
-			rsbListenerTrigger = Factory.getInstance().createListener(
-					RCT_SCOPE_TRIGGER);
+			rsbListenerSync = Factory.getInstance().createListener(
+					RCT_SCOPE_SYNC);
 			rsbInformerTransform = Factory.getInstance().createInformer(
 					RCT_SCOPE_TRANSFORM);
-			rsbInformerTrigger = Factory.getInstance().createInformer(
-					RCT_SCOPE_TRIGGER);
+			rsbInformerSync = Factory.getInstance().createInformer(
+					RCT_SCOPE_SYNC);
 			rsbListenerTransform.activate();
-			rsbListenerTrigger.activate();
+			rsbListenerSync.activate();
 			rsbInformerTransform.activate();
-			rsbInformerTrigger.activate();
+			rsbInformerSync.activate();
 
 		} catch (InitializeException e) {
 			throw new TransformerException(
@@ -107,9 +109,9 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
 					frameTransformCallback(event);
 				}
 			}, true);
-			rsbListenerTrigger.addHandler(new Handler() {
+			rsbListenerSync.addHandler(new Handler() {
 				public void internalNotify(Event event) {
-					triggerCallback(event);
+					syncCallback(event);
 				}
 			}, true);
 		} catch (InterruptedException e) {
@@ -122,18 +124,18 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
 	}
 
 	public void requestSync() throws TransformerException {
-		if (rsbInformerTrigger == null || !rsbInformerTrigger.isActive()) {
+		if (rsbInformerSync == null || !rsbInformerSync.isActive()) {
 			throw new TransformerException(
 					"Rsb communicator is not initialized.");
 		}
 
 		logger.debug("Sending sync request trigger from id "
-				+ rsbInformerTrigger.getId());
+				+ rsbInformerSync.getId());
 
 		// trigger other instances to send transforms
-		Event ev = new Event(rsbInformerTrigger.getScope(), Void.class, null);
+		Event ev = new Event(rsbInformerSync.getScope(), Void.class, null);
 		try {
-			rsbInformerTrigger.send(ev);
+			rsbInformerSync.send(ev);
 		} catch (RSBException e) {
 			throw new TransformerException(
 					"Can not trigger to send transforms. Reason: "
@@ -159,7 +161,7 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
 			event.setData(t);
 			event.getMetaData().setUserInfo("autority", name);
 			event.setType(FrameTransform.class);
-			
+
 			switch (type) {
 			case STATIC:
 				sendCacheStatic.put(cacheKey, t);
@@ -170,7 +172,8 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
 				event.setScope(new Scope(RCT_SCOPE_TRANSFORM_DYNAMIC));
 				break;
 			default:
-				throw new TransformerException("Unknown TransformType: " + type.name());
+				throw new TransformerException("Unknown TransformType: "
+						+ type.name());
 			}
 
 			try {
@@ -233,7 +236,8 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
 		Transform transform = convertPbToTransform(t);
 		transform.setAuthority(authority);
 		logger.debug("Received transform from " + authority);
-		logger.debug("Received transform: " + transform + " - static: " + isStatic);
+		logger.debug("Received transform: " + transform + " - static: "
+				+ isStatic);
 
 		synchronized (lock) {
 			for (TransformListener l : listeners) {
@@ -242,9 +246,9 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
 		}
 	}
 
-	private void triggerCallback(Event event) {
-		if (event.getId().getParticipantId().equals(rsbInformerTrigger.getId())) {
-			logger.warn("Received transform from myself. Ignore. (id "
+	private void syncCallback(Event event) {
+		if (event.getId().getParticipantId().equals(rsbInformerSync.getId())) {
+			logger.warn("Received sync request from myself. Ignore. (id "
 					+ event.getId().getParticipantId() + ")");
 			return;
 		}
