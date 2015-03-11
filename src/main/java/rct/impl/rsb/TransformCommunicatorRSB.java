@@ -61,8 +61,7 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
 	private String name;
 	ExecutorService executor = Executors.newCachedThreadPool();
 
-	private static Logger logger = Logger
-			.getLogger(TransformCommunicatorRSB.class);
+	private static Logger logger = Logger.getLogger(TransformCommunicatorRSB.class);
 
 	public TransformCommunicatorRSB(String name) {
 		this.name = name;
@@ -76,31 +75,24 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
 		final ProtocolBufferConverter<FrameTransform> converter = new ProtocolBufferConverter<FrameTransform>(
 				FrameTransform.getDefaultInstance());
 
-		DefaultConverterRepository.getDefaultConverterRepository()
-				.addConverter(converter);
+		DefaultConverterRepository.getDefaultConverterRepository().addConverter(converter);
 
 		try {
-			rsbListenerTransform = Factory.getInstance().createListener(
-					RCT_SCOPE_TRANSFORM);
-			rsbListenerSync = Factory.getInstance().createListener(
-					RCT_SCOPE_SYNC);
-			rsbInformerTransform = Factory.getInstance().createInformer(
-					RCT_SCOPE_TRANSFORM);
-			rsbInformerSync = Factory.getInstance().createInformer(
-					RCT_SCOPE_SYNC);
+			rsbListenerTransform = Factory.getInstance().createListener(RCT_SCOPE_TRANSFORM);
+			rsbListenerSync = Factory.getInstance().createListener(RCT_SCOPE_SYNC);
+			rsbInformerTransform = Factory.getInstance().createInformer(RCT_SCOPE_TRANSFORM);
+			rsbInformerSync = Factory.getInstance().createInformer(RCT_SCOPE_SYNC);
 			rsbListenerTransform.activate();
 			rsbListenerSync.activate();
 			rsbInformerTransform.activate();
 			rsbInformerSync.activate();
 
 		} catch (InitializeException e) {
-			throw new TransformerException(
-					"Can not initialize rsb communicator. Reason: "
-							+ e.getMessage(), e);
+			throw new TransformerException("Can not initialize rsb communicator. Reason: "
+					+ e.getMessage(), e);
 		} catch (RSBException e) {
-			throw new TransformerException(
-					"Can not initialize rsb communicator. Reason: "
-							+ e.getMessage(), e);
+			throw new TransformerException("Can not initialize rsb communicator. Reason: "
+					+ e.getMessage(), e);
 		}
 
 		try {
@@ -115,9 +107,8 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
 				}
 			}, true);
 		} catch (InterruptedException e) {
-			throw new TransformerException(
-					"Can not initialize rsb communicator. Reason: "
-							+ e.getMessage(), e);
+			throw new TransformerException("Can not initialize rsb communicator. Reason: "
+					+ e.getMessage(), e);
 		}
 
 		requestSync();
@@ -125,42 +116,40 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
 
 	public void requestSync() throws TransformerException {
 		if (rsbInformerSync == null || !rsbInformerSync.isActive()) {
-			throw new TransformerException(
-					"Rsb communicator is not initialized.");
+			throw new TransformerException("Rsb communicator is not initialized.");
 		}
 
-		logger.debug("Sending sync request trigger from id "
-				+ rsbInformerSync.getId());
+		logger.debug("Sending sync request trigger from id " + rsbInformerSync.getId());
 
 		// trigger other instances to send transforms
 		Event ev = new Event(rsbInformerSync.getScope(), Void.class, null);
 		try {
 			rsbInformerSync.send(ev);
 		} catch (RSBException e) {
-			throw new TransformerException(
-					"Can not trigger to send transforms. Reason: "
-							+ e.getMessage(), e);
+			throw new TransformerException("Can not trigger to send transforms. Reason: "
+					+ e.getMessage(), e);
 		}
 	}
 
-	public void sendTransform(Transform transform, TransformType type)
-			throws TransformerException {
+	public void sendTransform(Transform transform, TransformType type) throws TransformerException {
 		if (rsbInformerTransform == null || !rsbInformerTransform.isActive()) {
 			throw new TransformerException("RSB interface is not initialized!");
 		}
 
 		FrameTransform t = convertTransformToPb(transform);
-		String cacheKey = transform.getFrameParent()
-				+ transform.getFrameChild();
+		String cacheKey = transform.getFrameParent() + transform.getFrameChild();
 
-		logger.debug("Publishing transform from "
-				+ rsbInformerTransform.getId());
+		logger.debug("Publishing transform from " + rsbInformerTransform.getId());
 
 		synchronized (lock) {
 			Event event = new Event();
 			event.setData(t);
-			event.getMetaData().setUserInfo("autority", name);
 			event.setType(FrameTransform.class);
+			if (transform.getAuthority().equals("")) {
+				event.getMetaData().setUserInfo(USER_INFO_AUTHORITY, name);
+			} else {
+				event.getMetaData().setUserInfo(USER_INFO_AUTHORITY, transform.getAuthority());
+			}
 
 			switch (type) {
 			case STATIC:
@@ -172,15 +161,14 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
 				event.setScope(new Scope(RCT_SCOPE_TRANSFORM_DYNAMIC));
 				break;
 			default:
-				throw new TransformerException("Unknown TransformType: "
-						+ type.name());
+				throw new TransformerException("Unknown TransformType: " + type.name());
 			}
 
 			try {
 				rsbInformerTransform.send(event);
 			} catch (RSBException e) {
-				throw new TransformerException("Can not send transform: "
-						+ transform + ". Reason: " + e.getMessage(), e);
+				throw new TransformerException("Can not send transform: " + transform
+						+ ". Reason: " + e.getMessage(), e);
 			}
 		}
 	}
@@ -220,9 +208,8 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
 			logger.warn("Received non-rct type on rct scope.");
 			return;
 		}
-		if (event.getId().getParticipantId()
-				.equals(rsbInformerTransform.getId())) {
-			logger.warn("Received transform from myself. Ignore. (id "
+		if (event.getId().getParticipantId().equals(rsbInformerTransform.getId())) {
+			logger.trace("Received transform from myself. Ignore. (id "
 					+ event.getId().getParticipantId() + ")");
 			return;
 		}
@@ -235,9 +222,8 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
 
 		Transform transform = convertPbToTransform(t);
 		transform.setAuthority(authority);
-		logger.debug("Received transform from " + authority);
-		logger.debug("Received transform: " + transform + " - static: "
-				+ isStatic);
+		logger.trace("Received transform from " + authority);
+		logger.debug("Received transform: " + transform + " - static: " + isStatic);
 
 		synchronized (lock) {
 			for (TransformListener l : listeners) {
@@ -248,7 +234,7 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
 
 	private void syncCallback(Event event) {
 		if (event.getId().getParticipantId().equals(rsbInformerSync.getId())) {
-			logger.warn("Received sync request from myself. Ignore. (id "
+			logger.trace("Received sync request from myself. Ignore. (id "
 					+ event.getId().getParticipantId() + ")");
 			return;
 		}
@@ -272,10 +258,8 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
 			try {
 				rsbInformerTransform.send(event);
 			} catch (RSBException e) {
-				logger.error(
-						"Can not publish cached transform "
-								+ sendCacheDynamic.get(key) + ". Reason: "
-								+ e.getMessage(), e);
+				logger.error("Can not publish cached transform " + sendCacheDynamic.get(key)
+						+ ". Reason: " + e.getMessage(), e);
 			}
 		}
 		for (String key : sendCacheStatic.keySet()) {
@@ -286,10 +270,8 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
 			try {
 				rsbInformerTransform.send(event);
 			} catch (RSBException e) {
-				logger.error(
-						"Can not publish cached transform "
-								+ sendCacheDynamic.get(key) + ". Reason: "
-								+ e.getMessage(), e);
+				logger.error("Can not publish cached transform " + sendCacheDynamic.get(key)
+						+ ". Reason: " + e.getMessage(), e);
 			}
 		}
 	}
@@ -326,15 +308,13 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
 		Rotation rstRot = t.getTransform().getRotation();
 		Translation rstTrans = t.getTransform().getTranslation();
 
-		Quat4d quat = new Quat4d(rstRot.getQx(), rstRot.getQy(),
-				rstRot.getQz(), rstRot.getQw());
-		Vector3d vec = new Vector3d(rstTrans.getX(), rstTrans.getY(),
-				rstTrans.getZ());
+		Quat4d quat = new Quat4d(rstRot.getQx(), rstRot.getQy(), rstRot.getQz(), rstRot.getQw());
+		Vector3d vec = new Vector3d(rstTrans.getX(), rstTrans.getY(), rstTrans.getZ());
 
 		Transform3D transform3d = new Transform3D(quat, vec, 1.0);
 
-		Transform newTrans = new Transform(transform3d, t.getFrameParent(),
-				t.getFrameChild(), timeMSec);
+		Transform newTrans = new Transform(transform3d, t.getFrameParent(), t.getFrameChild(),
+				timeMSec);
 		return newTrans;
 	}
 }
