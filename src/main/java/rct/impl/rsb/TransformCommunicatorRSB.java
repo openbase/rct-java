@@ -8,10 +8,6 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import javax.media.j3d.Transform3D;
-import javax.vecmath.Quat4d;
-import javax.vecmath.Vector3d;
-
 import org.apache.log4j.Logger;
 
 import rct.Transform;
@@ -50,10 +46,11 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
 	private Informer<Void> rsbInformerSync;
 	private Set<TransformListener> listeners = new HashSet<TransformListener>();
 
-	private Map<String, Transform> sendCacheDynamic = new HashMap<String, FrameTransform>();
-	private Map<String, Transform> sendCacheStatic = new HashMap<String, FrameTransform>();
+	private Map<String, Transform> sendCacheDynamic = new HashMap<>();
+	private Map<String, Transform> sendCacheStatic = new HashMap<>();
 	private Object lock = new Object();
-	ExecutorService executor = Executors.newCachedThreadPool();
+	private ExecutorService executor = Executors.newCachedThreadPool();
+	private String name;
 
 	private static Logger logger = Logger
 			.getLogger(TransformCommunicatorRSB.class);
@@ -145,11 +142,11 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
 
 			switch (type) {
 			case STATIC:
-				sendCacheStatic.put(cacheKey, t);
+				sendCacheStatic.put(cacheKey, transform);
 				event.setScope(new Scope(RCT_SCOPE_TRANSFORM_STATIC));
 				break;
 			case DYNAMIC:
-				sendCacheDynamic.put(cacheKey, t);
+				sendCacheDynamic.put(cacheKey, transform);
 				event.setScope(new Scope(RCT_SCOPE_TRANSFORM_DYNAMIC));
 				break;
 			default:
@@ -195,8 +192,8 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
 		return name;
 	}
 
-	private void frameTransformCallback(Event event) {
-		if (event.getType() != FrameTransform.class) {
+	private void transformCallback(Event event) {
+		if (event.getType() != Transform.class) {
 			logger.warn("Received non-rct type on rct scope.");
 			return;
 		}
