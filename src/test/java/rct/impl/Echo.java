@@ -8,8 +8,8 @@ import rct.TransformerFactory;
 
 public class Echo {
 
-	public static void main(String[] args) {
-		
+		public static void main(String[] args) {
+
 		BasicConfigurator.configure();
 
 		if (args.length != 2) {
@@ -21,7 +21,7 @@ public class Echo {
 					.createTransformReceiver();
 
 			Thread.sleep(1000);
-			
+
 			Transform t = transformer.lookupTransform(args[0], args[1],
 					System.currentTimeMillis());
 
