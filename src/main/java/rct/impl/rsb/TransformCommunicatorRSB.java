@@ -134,7 +134,7 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
 			Event event = new Event();
 			event.setData(transform);
 			event.setType(Transform.class);
-			if (transform.getAuthority().equals("")) {
+			if (transform.getAuthority() == null || transform.getAuthority().equals("")) {
 				event.getMetaData().setUserInfo(USER_INFO_AUTHORITY, name);
 			} else {
 				event.getMetaData().setUserInfo(USER_INFO_AUTHORITY, transform.getAuthority());
