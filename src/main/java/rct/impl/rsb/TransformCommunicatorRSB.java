@@ -135,10 +135,10 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
 			event.setData(transform);
 			event.setType(Transform.class);
 			if (transform.getAuthority() == null || transform.getAuthority().equals("")) {
-				event.getMetaData().setUserInfo(USER_INFO_AUTHORITY, name);
-			} else {
-				event.getMetaData().setUserInfo(USER_INFO_AUTHORITY, transform.getAuthority());
-			}
+				transform.setAuthority(name);
+			} 
+            
+            event.getMetaData().setUserInfo(USER_INFO_AUTHORITY, transform.getAuthority());
 
 			switch (type) {
 			case STATIC:
@@ -239,25 +239,26 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
 
 			Event event = new Event();
 			event.setData(sendCacheDynamic.get(key));
-			event.getMetaData().setUserInfo(USER_INFO_AUTHORITY, name);
+			event.getMetaData().setUserInfo(USER_INFO_AUTHORITY, sendCacheDynamic.get(key).getAuthority());
 			event.setScope(new Scope(RCT_SCOPE_TRANSFORM_DYNAMIC));
 			event.setType(Transform.class);
 			try {
 				rsbInformerTransform.send(event);
 			} catch (RSBException e) {
-				logger.error("Can not publish cached transform " + sendCacheDynamic.get(key)
+				logger.error("Can not publish cached dynamic transform " + sendCacheDynamic.get(key)
 						+ ". Reason: " + e.getMessage(), e);
 			}
 		}
 		for (String key : sendCacheStatic.keySet()) {
 			Event event = new Event();
 			event.setData(sendCacheStatic.get(key));
+            event.getMetaData().setUserInfo(USER_INFO_AUTHORITY, sendCacheDynamic.get(key).getAuthority());
 			event.setScope(new Scope(RCT_SCOPE_TRANSFORM_STATIC));
 			event.setType(Transform.class);
 			try {
 				rsbInformerTransform.send(event);
 			} catch (RSBException e) {
-				logger.error("Can not publish cached transform " + sendCacheDynamic.get(key)
+				logger.error("Can not publish cached static transform " + sendCacheDynamic.get(key)
 						+ ". Reason: " + e.getMessage(), e);
 			}
 		}
