@@ -252,7 +252,7 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
 		for (String key : sendCacheStatic.keySet()) {
 			Event event = new Event();
 			event.setData(sendCacheStatic.get(key));
-            event.getMetaData().setUserInfo(USER_INFO_AUTHORITY, sendCacheDynamic.get(key).getAuthority());
+            event.getMetaData().setUserInfo(USER_INFO_AUTHORITY, sendCacheStatic.get(key).getAuthority());
 			event.setScope(new Scope(RCT_SCOPE_TRANSFORM_STATIC));
 			event.setType(Transform.class);
 			try {
