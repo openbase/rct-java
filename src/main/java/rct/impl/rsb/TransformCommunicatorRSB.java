@@ -7,8 +7,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import rct.Transform;
 import rct.TransformType;
@@ -52,8 +52,7 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
 	private ExecutorService executor = Executors.newCachedThreadPool();
 	private String name;
 
-	private static Logger logger = Logger
-			.getLogger(TransformCommunicatorRSB.class);
+	private static Logger logger = LoggerFactory.getLogger(TransformCommunicatorRSB.class);
 
 	public TransformCommunicatorRSB(String name) {
 		this.name = name;

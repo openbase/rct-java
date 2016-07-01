@@ -1,11 +1,12 @@
 package rct.impl;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class TransformCacheStatic implements TransformCache {
 
 	private TransformInternal storage = new TransformInternal();
-	private Logger logger = Logger.getLogger(TransformCacheImpl.class);
+	private static Logger logger = LoggerFactory.getLogger(TransformCacheImpl.class);
 	
 	public TransformCacheStatic() {
 	}
