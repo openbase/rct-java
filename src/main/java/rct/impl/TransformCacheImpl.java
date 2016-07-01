@@ -2,12 +2,12 @@ package rct.impl;
 
 import java.util.LinkedList;
 import java.util.List;
-
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class TransformCacheImpl implements TransformCache {
 
-	private Logger logger = Logger.getLogger(TransformCacheImpl.class);
+	private static Logger logger = LoggerFactory.getLogger(TransformCacheImpl.class);
 	private long maxStorageTime;
 	private List<TransformInternal> storage_ = new LinkedList<TransformInternal>();
 

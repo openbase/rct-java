@@ -2,8 +2,6 @@ package examples;
 
 import static java.lang.Math.cos;
 import static java.lang.Math.sin;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.media.j3d.Transform3D;
@@ -19,7 +17,6 @@ import rct.TransformReceiver;
 import rct.TransformType;
 import rct.TransformerException;
 import rct.TransformerFactory;
-import rct.impl.rsb.TransformCommunicatorRSB;
 
 /**
  *
