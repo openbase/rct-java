@@ -263,4 +263,61 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
 			}
 		}
 	}
+       /**
+        * @{@inheritDoc}
+        */
+       @Override
+       public void shutdown() {
+              if (rsbListenerTransform != null) {
+                     try {
+                            try {
+                                   rsbListenerTransform.deactivate();
+                            } catch (InterruptedException ex) {
+                                   Thread.currentThread().interrupt();
+                                   throw ex;
+                            }
+                     } catch (RSBException | InterruptedException e) {
+                            logger.error("Can not deactivate rsb listener. Reason: " + e.getMessage());
+                     }
+              }
+
+              if (rsbListenerSync != null) {
+                     try {
+                            try {
+                                   rsbListenerSync.deactivate();
+                            } catch (InterruptedException ex) {
+                                   Thread.currentThread().interrupt();
+                                   throw ex;
+                            }
+                     } catch (RSBException | InterruptedException e) {
+                            logger.error("Can not deactivate rsb listener. Reason: " + e.getMessage());
+                     }
+              }
+
+              if (rsbInformerTransform != null) {
+                     try {
+                            try {
+                                   rsbInformerTransform.deactivate();
+                            } catch (InterruptedException ex) {
+                                   Thread.currentThread().interrupt();
+                                   throw ex;
+                            }
+                     } catch (RSBException | InterruptedException e) {
+                            logger.error("Can not deactivate rsb listener. Reason: " + e.getMessage());
+                     }
+              }
+
+              if (rsbInformerSync != null) {
+                     try {
+                            try {
+                                   rsbInformerSync.deactivate();
+                            } catch (InterruptedException ex) {
+                                   Thread.currentThread().interrupt();
+                                   throw ex;
+                            }
+                     } catch (RSBException | InterruptedException e) {
+                            logger.error("Can not deactivate rsb listener. Reason: " + e.getMessage());
+                     }
+              }
+       }
 }
