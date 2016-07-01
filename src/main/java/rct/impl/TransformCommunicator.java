@@ -11,10 +11,10 @@ public interface TransformCommunicator {
 	
 	public void init(TransformerConfig conf) throws TransformerException;
     
-    /** 
-     * Shutdown the transform communicator
-     */
-    public void shutdown();
+       /** 
+       * Shutdown the transform communicator
+       */
+       public void shutdown();
 
 	/** \brief Add transform information to the rct data structure
 	 * \param transform The transform to store

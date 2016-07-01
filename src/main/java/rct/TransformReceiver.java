@@ -147,10 +147,10 @@ public class TransformReceiver {
 		return conf;
 	}
     
-    /** 
-     * Shutdown the transform communicator
-     */
-    public void shutdown() {
-        comm.shutdown();
-    }
+       /** 
+       * Shutdown the transform communicator
+       */
+       public void shutdown() {
+              comm.shutdown();
+       }
 }

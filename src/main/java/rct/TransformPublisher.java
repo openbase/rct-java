@@ -69,11 +69,11 @@ public class TransformPublisher {
 		return comm.getAuthorityID();
 	}
     
-    /** 
-     * Shutdown the transform communicator
-     */
-    public void shutdown() {
-        comm.shutdown();
-    }
+       /** 
+       * Shutdown the transform communicator
+       */
+       public void shutdown() {
+              comm.shutdown();
+       }
 
 }
