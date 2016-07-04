@@ -146,4 +146,11 @@ public class TransformReceiver {
 	public TransformerConfig getConfig() {
 		return conf;
 	}
+    
+       /** 
+       * Shutdown the transform communicator
+       */
+       public void shutdown() {
+              comm.shutdown();
+       }
 }
