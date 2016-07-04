@@ -15,8 +15,8 @@ import javax.media.j3d.Transform3D;
 import javax.vecmath.Matrix3d;
 import javax.vecmath.Quat4d;
 import javax.vecmath.Vector3d;
-
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import rct.Transform;
 import rct.TransformerException;
@@ -128,8 +128,7 @@ public class TransformerCoreDefault implements TransformerCore {
 
 	private static final int MAX_GRAPH_DEPTH = 1000;
 
-	private static Logger logger = Logger
-			.getLogger(TransformerCoreDefault.class);
+	private static Logger logger = LoggerFactory.getLogger(TransformerCoreDefault.class);
 	private Object lock = new Object();
 	private Map<String, Integer> frameIds = new HashMap<String, Integer>();
 	private List<TransformCache> frames = new LinkedList<TransformCache>();
@@ -943,8 +942,7 @@ public class TransformerCoreDefault implements TransformerCore {
 		try {
 			setTransform(transform, isStatic);
 		} catch (TransformerException e) {
-			logger.error(e.getMessage());
-			logger.debug(e);
+			logger.error(e.getMessage(), e);
 		}
 	}
 }
