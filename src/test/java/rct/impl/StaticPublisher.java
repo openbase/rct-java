@@ -6,8 +6,6 @@ import javax.media.j3d.Transform3D;
 import javax.vecmath.Quat4f;
 import javax.vecmath.Vector3d;
 
-import org.apache.log4j.BasicConfigurator;
-
 import rct.Transform;
 import rct.TransformType;
 import rct.TransformPublisher;
@@ -20,8 +18,6 @@ public class StaticPublisher {
 	private static TransformPublisher transformer;
 
 	public static void main(String[] args) {
-
-		BasicConfigurator.configure();
 
 		try {
 			transformer = TransformerFactory.getInstance().createTransformPublisher("static-publisher-java");

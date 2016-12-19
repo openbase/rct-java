@@ -15,17 +15,16 @@ import javax.media.j3d.Transform3D;
 import javax.vecmath.Quat4d;
 import javax.vecmath.Vector3d;
 
-import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.Logger;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.slf4j.LoggerFactory;
 
 import rct.Transform;
 import rct.TransformerException;
 
 public class TransformerCoreDefaultTest {
 
-	private Logger logger = Logger.getLogger(TransformerCoreDefaultTest.class);
+    private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(TransformerCoreDefaultTest.class);
 	
 	Transform generateDefaultTransform() {
 		Quat4d q = new Quat4d(0, 1, 2, 1);
@@ -38,7 +37,6 @@ public class TransformerCoreDefaultTest {
 
 	@BeforeClass
 	public static void setup() {
-		BasicConfigurator.configure();
 	}
 
 	@Test
@@ -55,7 +53,7 @@ public class TransformerCoreDefaultTest {
 			core.setTransform(transform0, false);
 			fail("a TransformerException was expected");
 		} catch(TransformerException e) {
-			logger.debug("expected transformer exception", e);
+			LOGGER.debug("expected transformer exception", e);
 		}
 		
 		try {
@@ -67,7 +65,7 @@ public class TransformerCoreDefaultTest {
 			core.setTransform(transform0, false);
 			fail("a TransformerException was expected");
 		} catch(TransformerException e) {
-			logger.debug("expected transformer exception", e);
+			LOGGER.debug("expected transformer exception", e);
 		}
 		
 		try {
@@ -81,7 +79,7 @@ public class TransformerCoreDefaultTest {
 			core.setTransform(transform0, false);
 			fail("a TransformerException was expected");
 		} catch(TransformerException e) {
-			logger.debug("expected transformer exception", e);
+			LOGGER.debug("expected transformer exception", e);
 		}
 	}
 
@@ -95,7 +93,7 @@ public class TransformerCoreDefaultTest {
 		core.setTransform(transform1, false);
 
 		String framesAsString = core.allFramesAsString();
-		logger.debug("framesAsString (0): " + framesAsString);
+		LOGGER.debug("framesAsString (0): " + framesAsString);
 
 		assertTrue(framesAsString.contains("foo"));
 		assertTrue(framesAsString.contains("bar"));
@@ -107,7 +105,7 @@ public class TransformerCoreDefaultTest {
 
 		core.setTransform(transform2, false);
 		framesAsString = core.allFramesAsString();
-		logger.debug("framesAsString (1): " + framesAsString);
+		LOGGER.debug("framesAsString (1): " + framesAsString);
 
 		assertTrue(framesAsString.contains("foo"));
 		assertTrue(framesAsString.contains("bar"));
@@ -124,7 +122,7 @@ public class TransformerCoreDefaultTest {
 		core.setTransform(transform1, true);
 
 		String framesAsString = core.allFramesAsString();
-		logger.debug("framesAsString (0): " + framesAsString);
+		LOGGER.debug("framesAsString (0): " + framesAsString);
 
 		assertTrue(framesAsString.contains("foo"));
 		assertTrue(framesAsString.contains("bar"));
@@ -136,7 +134,7 @@ public class TransformerCoreDefaultTest {
 
 		core.setTransform(transform2, true);
 		framesAsString = core.allFramesAsString();
-		logger.debug("framesAsString (1): " + framesAsString);
+		LOGGER.debug("framesAsString (1): " + framesAsString);
 
 		assertTrue(framesAsString.contains("foo"));
 		assertTrue(framesAsString.contains("bar"));
@@ -180,14 +178,14 @@ public class TransformerCoreDefaultTest {
 		
 		// lookup A->B
 		Transform out0 = core.lookupTransform("foo", "bar", 5);
-		logger.debug(out0);
+		LOGGER.debug(out0.toString());
 		assertEquals("foo", out0.getFrameParent());
 		assertEquals("bar", out0.getFrameChild());
 		assertEquals(new Vector3d(0, 1, 2), out0.getTranslation());
 		
 		// lookup B->A
 		Transform out1 = core.lookupTransform("bar", "foo", 5);
-		logger.debug(out1);
+		LOGGER.debug(out1.toString());
 		assertEquals("bar", out1.getFrameParent());
 		assertEquals("foo", out1.getFrameChild());
 		assertEquals(new Vector3d(0, -1, -2), out1.getTranslation());
@@ -202,14 +200,14 @@ public class TransformerCoreDefaultTest {
 		
 		// lookup A->C
 		Transform out2 = core.lookupTransform("foo", "baz", 5);
-		logger.debug(out2);
+		LOGGER.debug(out2.toString());
 		assertEquals("foo", out2.getFrameParent());
 		assertEquals("baz", out2.getFrameChild());
 		assertEquals(new Vector3d(0, 2, 4), out2.getTranslation());
 		
 		// lookup C->A
 		Transform out3 = core.lookupTransform("baz", "foo", 5);
-		logger.debug(out3);
+		LOGGER.debug(out3.toString());
 		assertEquals("baz", out3.getFrameParent());
 		assertEquals("foo", out3.getFrameChild());
 		assertEquals(new Vector3d(0, -2, -4), out3.getTranslation());
@@ -224,14 +222,14 @@ public class TransformerCoreDefaultTest {
 		
 		// lookup A->B
 		Transform out0 = core.lookupTransform("foo", "bar", 5);
-		logger.debug(out0);
+		LOGGER.debug(out0.toString());
 		assertEquals("foo", out0.getFrameParent());
 		assertEquals("bar", out0.getFrameChild());
 		assertEquals(new Vector3d(0, 1, 2), out0.getTranslation());
 		
 		// lookup B->A
 		Transform out1 = core.lookupTransform("bar", "foo", 5);
-		logger.debug(out1);
+		LOGGER.debug(out1.toString());
 		assertEquals("bar", out1.getFrameParent());
 		assertEquals("foo", out1.getFrameChild());
 		assertEquals(new Vector3d(0, -1, -2), out1.getTranslation());
@@ -244,14 +242,14 @@ public class TransformerCoreDefaultTest {
 		
 		// lookup A->C
 		Transform out2 = core.lookupTransform("foo", "baz", 5);
-		logger.debug(out2);
+		LOGGER.debug(out2.toString());
 		assertEquals("foo", out2.getFrameParent());
 		assertEquals("baz", out2.getFrameChild());
 		assertEquals(new Vector3d(0, 2, 4), out2.getTranslation());
 		
 		// lookup C->A
 		Transform out3 = core.lookupTransform("baz", "foo", 5);
-		logger.debug(out3);
+		LOGGER.debug(out3.toString());
 		assertEquals("baz", out3.getFrameParent());
 		assertEquals("foo", out3.getFrameChild());
 		assertEquals(new Vector3d(0, -2, -4), out3.getTranslation());
@@ -341,7 +339,7 @@ public class TransformerCoreDefaultTest {
 		
 		try {
 			Transform t = future.get(400, TimeUnit.MILLISECONDS);
-			logger.error("wrong object: " + t);
+			LOGGER.error("wrong object: " + t);
 			fail("not available yet");
 		} catch(TimeoutException e) {
 			// expected
@@ -351,7 +349,7 @@ public class TransformerCoreDefaultTest {
 		core.setTransform(transform, true);
 		
 		Transform out0 = future.get(400, TimeUnit.MILLISECONDS);
-		logger.debug(out0);
+		LOGGER.debug(out0.toString());
 		assertEquals("foo", out0.getFrameParent());
 		assertEquals("bar", out0.getFrameChild());
 		assertEquals(new Vector3d(0, 1, 2), out0.getTranslation());
@@ -360,7 +358,7 @@ public class TransformerCoreDefaultTest {
 		assertFalse(future.isCancelled());
 		
 		Transform out1 = future.get();
-		logger.debug(out1);
+		LOGGER.debug(out1.toString());
 		assertEquals("foo", out1.getFrameParent());
 		assertEquals("bar", out1.getFrameChild());
 		assertEquals(new Vector3d(0, 1, 2), out1.getTranslation());
@@ -371,7 +369,7 @@ public class TransformerCoreDefaultTest {
 		
 		try {
 			Transform t = future.get(400, TimeUnit.MILLISECONDS);
-			logger.error("wrong object: " + t);
+			LOGGER.error("wrong object: " + t);
 			fail("not available yet");
 		} catch(TimeoutException e) {
 			// expected
@@ -385,7 +383,7 @@ public class TransformerCoreDefaultTest {
 		
 		try {
 			Transform t = future.get(400, TimeUnit.MILLISECONDS);
-			logger.error("wrong object: " + t);
+			LOGGER.error("wrong object: " + t);
 			fail("is cancelled");
 		} catch(CancellationException e) {
 			// expected

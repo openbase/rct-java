@@ -1,5 +1,6 @@
 package examples;
 
+import ch.qos.logback.classic.BasicConfigurator;
 import static java.lang.Math.cos;
 import static java.lang.Math.sin;
 import java.util.logging.Level;
@@ -9,8 +10,7 @@ import javax.vecmath.Quat4d;
 import javax.vecmath.Quat4f;
 import javax.vecmath.Vector3d;
 import javax.vecmath.Vector4d;
-import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.LogManager;
+import org.slf4j.LoggerFactory;
 import rct.Transform;
 import rct.TransformPublisher;
 import rct.TransformReceiver;
@@ -24,15 +24,13 @@ import rct.TransformerFactory;
  */
 public class Cross_lib_provider {
 
+    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(Cross_lib_provider.class);
+    
     static TransformPublisher publisher;
     TransformReceiver receiver;
 
-    org.apache.log4j.Logger logger = LogManager.getRootLogger();
-
     public Cross_lib_provider() {
-        BasicConfigurator.configure();
-        logger.setLevel(org.apache.log4j.Level.WARN);
-
+        
     }
 
     private Quat4f yrp2q(float roll, float pitch, float yaw) {

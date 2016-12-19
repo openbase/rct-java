@@ -1,6 +1,6 @@
 package rct.impl;
 
-import org.apache.log4j.BasicConfigurator;
+import ch.qos.logback.classic.BasicConfigurator;
 
 import rct.Transform;
 import rct.TransformReceiver;
@@ -9,8 +9,6 @@ import rct.TransformerFactory;
 public class Echo {
 
 		public static void main(String[] args) {
-
-		BasicConfigurator.configure();
 
 		if (args.length != 2) {
 			System.err.println("Required 2 arguments!");

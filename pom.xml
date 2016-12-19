@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>rct</groupId>
     <artifactId>rct</artifactId>
-    <version>1.0.6</version>
+    <version>1.1-SNAPSHOT</version>
     <build>
         <plugins>
             <plugin>
@@ -11,8 +11,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.2</version>
                 <configuration>
-                    <source>1.7</source>
-                    <target>1.7</target>
+                    <source>1.8</source>
+                    <target>1.8</target>
                 </configuration>
             </plugin>
             <plugin>
@@ -46,9 +46,28 @@
             </plugin>
         </plugins>
     </build>
+    
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <skipTests>false</skipTests>
+        <logback.version>1.1.7</logback.version>
+    </properties>
+    
     <dependencies>
         <dependency>
-            <groupId>java3d</groupId>
+            <!-- windows logging support -->
+            <groupId>org.fusesource.jansi</groupId>
+            <artifactId>jansi</artifactId>
+            <version>1.11</version>
+        </dependency>
+        <dependency>
+            <!-- contains slf4j-api -->
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>${logback.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>java3d</groupId>   
             <artifactId>vecmath</artifactId>
             <version>1.3.1</version>
         </dependency>
@@ -60,7 +79,7 @@
         <dependency>
             <groupId>rsb</groupId>
             <artifactId>rsb</artifactId>
-            <version>[0.11,0.16-SNAPSHOT)</version>
+            <version>[0.15,0.16-SNAPSHOT)</version>
             <exclusions>
                 <exclusion>
                     <groupId>com.google.protobuf</groupId>
@@ -71,17 +90,7 @@
         <dependency>
             <groupId>rsb</groupId>
             <artifactId>rst</artifactId>
-            <version>[0.11,0.16-SNAPSHOT)</version>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>1.7.21</version>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-            <version>1.7.21</version>
+            <version>[0.15,0.16-SNAPSHOT)</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -89,6 +98,19 @@
             <version>4.12</version>
         </dependency>
     </dependencies>
+    
+    <licenses>
+        <license>
+            <name>LGPLv3</name>
+            <url>http://www.gnu.org/licenses/lgpl.html</url>
+        </license>
+    </licenses>
+    
+    <scm>
+        <connection>scm:git:https://github.com/CentralLabFacilities/rct-java.git</connection>
+        <developerConnection>scm:git:https://github.com/CentralLabFacilities/rct-java.git</developerConnection>
+        <url>https://github.com/CentralLabFacilities/rct-java.git</url>
+    </scm>
 
     <repositories>
         <repository>
@@ -96,29 +118,33 @@
             <url>http://maven.geotoolkit.org/</url>
         </repository>
         <repository>
-            <id>citec-maven-releases</id>
-            <name>CITEC Maven Repository Server Releases</name>
-            <url>
-                https://mvn.cit-ec.de/nexus/content/repositories/releases/
-            </url>
+            <id>citec-releases</id>
+            <name>CITEC Maven Repository Server</name>
+            <url>https://mvn.cit-ec.de/nexus/content/repositories/releases/</url>
             <layout>default</layout>
             <releases>
                 <enabled>true</enabled>
             </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
         </repository>
         <repository>
-            <id>citec-maven-snapshots</id>
-            <name>CITEC Maven Repository Server Snapshots</name>
-            <url>
-                https://mvn.cit-ec.de/nexus/content/repositories/snapshots/
-            </url>
+            <id>citec-snapshots</id>
+            <name>CITEC Maven Repository Server</name>
+            <url>https://mvn.cit-ec.de/nexus/content/repositories/snapshots/</url>
             <layout>default</layout>
             <snapshots>
                 <enabled>true</enabled>
             </snapshots>
         </repository>
     </repositories>
+    
+    <distributionManagement>
+        <repository>
+            <id>citec-releases</id>
+            <url>https://mvn.cit-ec.de/nexus/content/repositories/releases/</url>
+        </repository>
+        <snapshotRepository>
+            <id>citec-snapshots</id>
+            <url>https://mvn.cit-ec.de/nexus/content/repositories/snapshots/</url>
+        </snapshotRepository>
+    </distributionManagement>
 </project>
