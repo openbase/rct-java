@@ -114,10 +114,6 @@
 
     <repositories>
         <repository>
-            <id>geotoolkit.org</id>
-            <url>http://maven.geotoolkit.org/</url>
-        </repository>
-        <repository>
             <id>citec-releases</id>
             <name>CITEC Maven Repository Server</name>
             <url>https://mvn.cit-ec.de/nexus/content/repositories/releases/</url>
