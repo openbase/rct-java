@@ -1,8 +1,8 @@
 package rct.impl;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -129,7 +129,7 @@ public class TransformerCoreDefault implements TransformerCore {
 	private static final int MAX_GRAPH_DEPTH = 1000;
 
 	private static Logger logger = LoggerFactory.getLogger(TransformerCoreDefault.class);
-	private Object lock = new Object();
+	private final Object lock = new Object();
 	private Map<String, Integer> frameIds = new HashMap<String, Integer>();
 	private List<TransformCache> frames = new LinkedList<TransformCache>();
 	private List<String> frameIdsReverse = new LinkedList<String>();
@@ -662,17 +662,14 @@ public class TransformerCoreDefault implements TransformerCore {
 
 	private void checkRequests() {
 		// go through all request and check if they can be answered
-		for (Iterator<TransformRequest> requestIt = requests.iterator(); requestIt
-				.hasNext();) {
-			TransformRequest request = requestIt.next();
+		for(final TransformRequest request : new ArrayList<>(requests)) {
 			synchronized (lock) {
 				try {
-					Transform t = lookupTransformNoLock(request.target_frame,
-							request.source_frame, request.time);
+					final Transform t = lookupTransformNoLock(request.target_frame, request.source_frame, request.time);
 					// request can be answered. publish the transform through
 					// the future object and remove the request.
 					request.future.set(t);
-					requestIt.remove();
+					requests.remove(request);
 				} catch (TransformerException e) {
 					// expected, just proceed
 					continue;
