@@ -55,16 +55,9 @@
     
     <dependencies>
         <dependency>
-            <!-- windows logging support -->
-            <groupId>org.fusesource.jansi</groupId>
-            <artifactId>jansi</artifactId>
-            <version>1.11</version>
-        </dependency>
-        <dependency>
-            <!-- contains slf4j-api -->
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <version>${logback.version}</version>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>[1.7,1.8-SNAPSHOT)</version>
         </dependency>
         <dependency>
             <groupId>java3d</groupId>   

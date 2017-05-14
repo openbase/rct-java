@@ -1,7 +1,5 @@
 package rct.impl;
 
-import ch.qos.logback.classic.BasicConfigurator;
-
 import rct.Transform;
 import rct.TransformReceiver;
 import rct.TransformerFactory;

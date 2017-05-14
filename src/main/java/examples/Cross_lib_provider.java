@@ -1,6 +1,5 @@
 package examples;
 
-import ch.qos.logback.classic.BasicConfigurator;
 import static java.lang.Math.cos;
 import static java.lang.Math.sin;
 import java.util.logging.Level;
