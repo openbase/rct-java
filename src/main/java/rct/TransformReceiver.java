@@ -76,7 +76,7 @@ public class TransformReceiver {
      * between the frames
      *
      */
-    public Future<Transform> requestTransform(String targetFrame, String sourceFrame, long time) throws TransformerException {
+    public Future<Transform> requestTransform(String targetFrame, String sourceFrame, long time) {
         return core.requestTransform(targetFrame, sourceFrame, time);
     }
 
@@ -85,11 +85,9 @@ public class TransformReceiver {
      * @param targetFrame The frame into which to transform
      * @param sourceFrame frame from which to transform
      * @param time The time at which to transform
-     * @param error_msg A pointer to a string which will be filled with why the transform failed, if not NULL
      * @return True if the transform is possible, false otherwise
      */
-    public boolean canTransform(String targetFrame, String sourceFrame,
-            long time) {
+    public boolean canTransform(String targetFrame, String sourceFrame, long time) {
         return core.canTransform(targetFrame, sourceFrame, time);
     }
 

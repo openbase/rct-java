@@ -59,7 +59,7 @@ public interface TransformerCore extends TransformListener {
      * @throws rct.TransformerException
      *
      */
-    Future<Transform> requestTransform(String targetFrame, String sourceFrame, long time) throws TransformerException;
+    Future<Transform> requestTransform(String targetFrame, String sourceFrame, long time);
 
     /**
      * Test if a transform is possible

@@ -7,7 +7,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
@@ -144,7 +144,7 @@ public class TransformerCoreDefault implements TransformerCore {
     private final Set<TransformRequest> requests = new HashSet<>();
     private final List<TimeAndFrameID> lctCache = new LinkedList<>();
 
-    private final Executor executor = Executors.newCachedThreadPool();
+    private final ExecutorService executor = Executors.newCachedThreadPool();
 
     public TransformerCoreDefault(long cacheTime) {
         this.cacheTime = cacheTime;
@@ -596,18 +596,13 @@ public class TransformerCoreDefault implements TransformerCore {
     }
 
     @Override
-    public Future<Transform> requestTransform(String targetFrame, String sourceFrame, long time) throws TransformerException {
+    public Future<Transform> requestTransform(String targetFrame, String sourceFrame, long time) {
         FutureTransform future = new FutureTransform();
         synchronized (lock) {
             int targetId = lookupFrameNumber(targetFrame);
             int sourceId = lookupFrameNumber(sourceFrame);
             if (canTransformNoLock(targetId, sourceId, time)) {
-                try {
-                    future.set(lookupTransformNoLock(targetFrame, sourceFrame, time));
-                    return future;
-                } catch (TransformerException ex) {
-                    throw new TransformerException("Could not get transformation from [" + sourceFrame + "] to [" + sourceFrame + "]", ex);
-                }
+                return executor.submit(() -> lookupTransform(targetFrame, sourceFrame, time));
             }
             requests.add(new TransformRequest(targetFrame, sourceFrame, time, future));
             return future;
