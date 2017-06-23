@@ -1,6 +1,5 @@
 package rct.impl;
 
-import static java.lang.String.format;
 import javax.vecmath.Quat4d;
 import javax.vecmath.Vector3d;
 
@@ -38,9 +37,11 @@ public class TransformInternal {
 	}
 
 	public String toString() {
-		String translationStr = format("{%.2f; %.2f; %.2f}",
+		String translationStr = String
+				.format("{%.2f; %.2f; %.2f}",
 						translation.x, translation.y, translation.z);
-		String rotationStr = format("{w:%.2f; x:%.2f; y:%.2f; z:%.2f}",
+		String rotationStr = String
+				.format("{w:%.2f; x:%.2f; y:%.2f; z:%.2f}",
 						rotation.w, rotation.x, rotation.y, rotation.z);
 		return "TransformInternal[parent:" + frame_id + ",child:" + child_frame_id + ",stamp:" + stamp  + ",t:" + translationStr + ",r:" + rotationStr + "]";
 	};

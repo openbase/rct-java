@@ -3,15 +3,6 @@
 
 package rct.proto;
 
-import static com.google.protobuf.ByteString.copyFromUtf8;
-import static com.google.protobuf.CodedOutputStream.computeBytesSize;
-import static com.google.protobuf.CodedOutputStream.computeMessageSize;
-import static com.google.protobuf.Descriptors.FileDescriptor.internalBuildGeneratedFileFrom;
-import static rct.proto.FrameTransformType.FrameTransform.Builder.create;
-import static rct.proto.FrameTransformType.internal_static_rct_FrameTransform_descriptor;
-import static rst.geometry.PoseType.Pose.PARSER;
-import static rst.timing.TimestampType.Timestamp.PARSER;
-
 public final class FrameTransformType {
   private FrameTransformType() {}
   public static void registerAllExtensions(
@@ -202,7 +193,7 @@ public final class FrameTransformType {
               if (((bitField0_ & 0x00000001) == 0x00000001)) {
                 subBuilder = transform_.toBuilder();
               }
-              transform_ = input.readMessage(PARSER, extensionRegistry);
+              transform_ = input.readMessage(rst.geometry.PoseType.Pose.PARSER, extensionRegistry);
               if (subBuilder != null) {
                 subBuilder.mergeFrom(transform_);
                 transform_ = subBuilder.buildPartial();
@@ -225,7 +216,7 @@ public final class FrameTransformType {
               if (((bitField0_ & 0x00000008) == 0x00000008)) {
                 subBuilder = time_.toBuilder();
               }
-              time_ = input.readMessage(PARSER, extensionRegistry);
+              time_ = input.readMessage(rst.timing.TimestampType.Timestamp.PARSER, extensionRegistry);
               if (subBuilder != null) {
                 subBuilder.mergeFrom(time_);
                 time_ = subBuilder.buildPartial();
@@ -247,12 +238,12 @@ public final class FrameTransformType {
     }
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return internal_static_rct_FrameTransform_descriptor;
+      return rct.proto.FrameTransformType.internal_static_rct_FrameTransform_descriptor;
     }
 
     protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return internal_static_rct_FrameTransform_fieldAccessorTable
+      return rct.proto.FrameTransformType.internal_static_rct_FrameTransform_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
               rct.proto.FrameTransformType.FrameTransform.class, rct.proto.FrameTransformType.FrameTransform.Builder.class);
     }
@@ -359,7 +350,7 @@ public final class FrameTransformType {
       java.lang.Object ref = frameParent_;
       if (ref instanceof java.lang.String) {
         com.google.protobuf.ByteString b = 
-                copyFromUtf8(
+            com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         frameParent_ = b;
         return b;
@@ -417,7 +408,7 @@ public final class FrameTransformType {
       java.lang.Object ref = frameChild_;
       if (ref instanceof java.lang.String) {
         com.google.protobuf.ByteString b = 
-                copyFromUtf8(
+            com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         frameChild_ = b;
         return b;
@@ -523,16 +514,20 @@ public final class FrameTransformType {
 
       size = 0;
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
-        size += computeMessageSize(1, transform_);
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(1, transform_);
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        size += computeBytesSize(2, getFrameParentBytes());
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(2, getFrameParentBytes());
       }
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
-        size += computeBytesSize(3, getFrameChildBytes());
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(3, getFrameChildBytes());
       }
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
-        size += computeMessageSize(4, time_);
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(4, time_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -599,7 +594,7 @@ public final class FrameTransformType {
       return PARSER.parseFrom(input, extensionRegistry);
     }
 
-    public static Builder newBuilder() { return create(); }
+    public static Builder newBuilder() { return Builder.create(); }
     public Builder newBuilderForType() { return newBuilder(); }
     public static Builder newBuilder(rct.proto.FrameTransformType.FrameTransform prototype) {
       return newBuilder().mergeFrom(prototype);
@@ -628,12 +623,12 @@ public final class FrameTransformType {
        implements rct.proto.FrameTransformType.FrameTransformOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
-        return  internal_static_rct_FrameTransform_descriptor;
+        return rct.proto.FrameTransformType.internal_static_rct_FrameTransform_descriptor;
       }
 
       protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
           internalGetFieldAccessorTable() {
-        return  internal_static_rct_FrameTransform_fieldAccessorTable
+        return rct.proto.FrameTransformType.internal_static_rct_FrameTransform_fieldAccessorTable
             .ensureFieldAccessorsInitialized(
                 rct.proto.FrameTransformType.FrameTransform.class, rct.proto.FrameTransformType.FrameTransform.Builder.class);
       }
@@ -649,7 +644,7 @@ public final class FrameTransformType {
         maybeForceBuilderInitialization();
       }
       private void maybeForceBuilderInitialization() {
-        if (    alwaysUseFieldBuilders) {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
           getTransformFieldBuilder();
           getTimeFieldBuilder();
         }
@@ -685,11 +680,11 @@ public final class FrameTransformType {
 
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
-        return  internal_static_rct_FrameTransform_descriptor;
+        return rct.proto.FrameTransformType.internal_static_rct_FrameTransform_descriptor;
       }
 
       public rct.proto.FrameTransformType.FrameTransform getDefaultInstanceForType() {
-        return  getDefaultInstance();
+        return rct.proto.FrameTransformType.FrameTransform.getDefaultInstance();
       }
 
       public rct.proto.FrameTransformType.FrameTransform build() {
@@ -743,7 +738,7 @@ public final class FrameTransformType {
       }
 
       public Builder mergeFrom(rct.proto.FrameTransformType.FrameTransform other) {
-        if (other == getDefaultInstance()) return this;
+        if (other == rct.proto.FrameTransformType.FrameTransform.getDefaultInstance()) return this;
         if (other.hasTransform()) {
           mergeTransform(other.getTransform());
         }
@@ -960,7 +955,7 @@ public final class FrameTransformType {
           getTransformFieldBuilder() {
         if (transformBuilder_ == null) {
           transformBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              >(
+              rst.geometry.PoseType.Pose, rst.geometry.PoseType.Pose.Builder, rst.geometry.PoseType.PoseOrBuilder>(
                   transform_,
                   getParentForChildren(),
                   isClean());
@@ -1014,7 +1009,7 @@ public final class FrameTransformType {
         java.lang.Object ref = frameParent_;
         if (ref instanceof String) {
           com.google.protobuf.ByteString b = 
-                    copyFromUtf8(
+              com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           frameParent_ = b;
           return b;
@@ -1118,7 +1113,7 @@ public final class FrameTransformType {
         java.lang.Object ref = frameChild_;
         if (ref instanceof String) {
           com.google.protobuf.ByteString b = 
-                    copyFromUtf8(
+              com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           frameChild_ = b;
           return b;
@@ -1330,7 +1325,7 @@ public final class FrameTransformType {
           getTimeFieldBuilder() {
         if (timeBuilder_ == null) {
           timeBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              >(
+              rst.timing.TimestampType.Timestamp, rst.timing.TimestampType.Timestamp.Builder, rst.timing.TimestampType.TimestampOrBuilder>(
                   time_,
                   getParentForChildren(),
                   isClean());
@@ -1386,7 +1381,8 @@ public final class FrameTransformType {
           return null;
         }
       };
-        internalBuildGeneratedFileFrom(descriptorData,
+    com.google.protobuf.Descriptors.FileDescriptor
+      .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
           rst.geometry.PoseType.getDescriptor(),
           rst.timing.TimestampType.getDescriptor(),
