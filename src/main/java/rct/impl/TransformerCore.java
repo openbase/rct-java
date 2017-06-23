@@ -56,9 +56,10 @@ public interface TransformerCore extends TransformListener {
      * @param sourceFrame The frame where the data originated
      * @param time The time at which the value of the transform is desired. (0 will get the latest)
      * @return A future object representing the request status and transform between the frames
+     * @throws rct.TransformerException
      *
      */
-    Future<Transform> requestTransform(String targetFrame, String sourceFrame, long time);
+    Future<Transform> requestTransform(String targetFrame, String sourceFrame, long time) throws TransformerException;
 
     /**
      * Test if a transform is possible
