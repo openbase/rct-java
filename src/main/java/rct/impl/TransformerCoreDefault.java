@@ -605,8 +605,8 @@ public class TransformerCoreDefault implements TransformerCore {
                 return executor.submit(() -> lookupTransform(targetFrame, sourceFrame, time));
             }
             requests.add(new TransformRequest(targetFrame, sourceFrame, time, future));
-            return future;
         }
+        return future;
     }
 
     private void checkRequests() {
