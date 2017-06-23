@@ -1,5 +1,5 @@
 package rct;
 
 public enum TransformType {
-	STATIC, DYNAMIC
+    STATIC, DYNAMIC
 }

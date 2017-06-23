@@ -24,12 +24,12 @@ import rct.TransformerFactory;
 public class Cross_lib_provider {
 
     private static final org.slf4j.Logger logger = LoggerFactory.getLogger(Cross_lib_provider.class);
-    
+
     static TransformPublisher publisher;
     TransformReceiver receiver;
 
     public Cross_lib_provider() {
-        
+
     }
 
     private Quat4f yrp2q(float roll, float pitch, float yaw) {

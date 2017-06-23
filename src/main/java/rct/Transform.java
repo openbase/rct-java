@@ -26,13 +26,12 @@ public class Transform {
 	/**
 	 * Creates a new transform object as copy from another transform object.
 	 * 
-	 * @param transform
-	 *            The original to copy from.
+	 * @param transform The original to copy from.
 	 */
 	public Transform(final Transform transform) {
 		this.transform = new Transform3D(transform.transform);
-		this.frameParent = new String(transform.frameParent);
-		this.frameChild = new String(transform.frameChild);
+		this.frameParent = transform.frameParent;
+		this.frameChild = transform.frameChild;
 		this.time = transform.time;
 		this.authority = transform.authority;
 	}
@@ -49,8 +48,7 @@ public class Transform {
 	 * @param time
 	 *            The time at which this object was created.
 	 */
-	public Transform(Transform3D transform, String frameParent,
-			String frameChild, long time) {
+	public Transform(Transform3D transform, String frameParent, String frameChild, long time) {
 		this.transform = transform;
 		this.frameParent = frameParent;
 		this.frameChild = frameChild;
@@ -209,8 +207,7 @@ public class Transform {
 	/**
 	 * Setter for the ID of the authority that created this object.
 	 * 
-	 * @param authority
-	 *            The authority ID
+	 * @param authority The authority ID
 	 */
 	public void setAuthority(String authority) {
 		this.authority = authority;
