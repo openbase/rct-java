@@ -4,6 +4,7 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import java.util.concurrent.TimeoutException;
 
 import rct.Transform;
@@ -60,7 +61,7 @@ public class TransformRequest {
 				if (transform != null) {
 					return transform;
 				} else {
-					lock.wait(TimeUnit.MILLISECONDS.convert( timeout, unit ));
+					lock.wait(MILLISECONDS.convert( timeout, unit ));
 					if (cancelled) {
 						throw new CancellationException();
 					}

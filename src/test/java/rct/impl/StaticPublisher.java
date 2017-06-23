@@ -1,6 +1,11 @@
 package rct.impl;
 
 import java.io.IOException;
+import static java.lang.System.currentTimeMillis;
+import static java.lang.System.exit;
+import static java.lang.System.in;
+import static java.lang.System.out;
+import static java.lang.Thread.sleep;
 
 import javax.media.j3d.Transform3D;
 import javax.vecmath.Quat4f;
@@ -9,9 +14,11 @@ import javax.vecmath.Vector3d;
 import rct.Transform;
 import rct.TransformType;
 import rct.TransformPublisher;
+import static rct.TransformType.STATIC;
 import rct.TransformerException;
 import rct.TransformerFactory;
 import rct.TransformerFactory.TransformerFactoryException;
+import static rct.TransformerFactory.getInstance;
 
 public class StaticPublisher {
 
@@ -20,24 +27,24 @@ public class StaticPublisher {
 	public static void main(String[] args) {
 
 		try {
-			transformer = TransformerFactory.getInstance().createTransformPublisher("static-publisher-java");
+			transformer = getInstance().createTransformPublisher("static-publisher-java");
 
 
 			Transform3D transform = new Transform3D(new Quat4f(1, 0, 0, 1), new Vector3d(1, 2, 3), 1.0);
-			Transform t = new Transform(transform, "start", "foo", System.currentTimeMillis());
+			Transform t = new Transform(transform, "start", "foo", currentTimeMillis());
 
-			transformer.sendTransform(t, TransformType.STATIC);
+			transformer.sendTransform(t, STATIC);
 
-			Thread.sleep(1000);
-			System.out.println("Press ENTER to exit");
-			System.in.read();
+			sleep(1000);
+			out.println("Press ENTER to exit");
+			in.read();
 
 		} catch (TransformerException | TransformerFactoryException | IOException | InterruptedException e) {
 			e.printStackTrace();
-			System.exit(1);
+			exit(1);
 		}
 
-		System.out.println("done");
-		System.exit(0);
+		out.println("done");
+		exit(0);
 	}
 	}

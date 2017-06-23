@@ -1,5 +1,6 @@
 package rct.impl;
 
+import static java.lang.Double.NaN;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -9,6 +10,7 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import java.util.concurrent.TimeoutException;
 
 import javax.media.j3d.Transform3D;
@@ -18,13 +20,14 @@ import javax.vecmath.Vector3d;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.LoggerFactory;
+import static org.slf4j.LoggerFactory.getLogger;
 
 import rct.Transform;
 import rct.TransformerException;
 
 public class TransformerCoreDefaultTest {
 
-    private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(TransformerCoreDefaultTest.class);
+    private static final org.slf4j.Logger LOGGER = getLogger(TransformerCoreDefaultTest.class);
 	
 	Transform generateDefaultTransform() {
 		Quat4d q = new Quat4d(0, 1, 2, 1);
@@ -70,7 +73,7 @@ public class TransformerCoreDefaultTest {
 		
 		try {
 			// test nan
-			Vector3d v0 = new Vector3d(0, 1, Double.NaN);
+			Vector3d v0 = new Vector3d(0, 1, NaN);
 			Quat4d q = new Quat4d(0, 1, 2, 1);
 			Transform3D t0 = new Transform3D(q,v0,1);
 			Transform transform0 = new Transform(transform);
@@ -338,7 +341,7 @@ public class TransformerCoreDefaultTest {
 		assertFalse(future.isCancelled());
 		
 		try {
-			Transform t = future.get(400, TimeUnit.MILLISECONDS);
+			Transform t = future.get(400, MILLISECONDS);
 			LOGGER.error("wrong object: " + t);
 			fail("not available yet");
 		} catch(TimeoutException e) {
@@ -348,7 +351,7 @@ public class TransformerCoreDefaultTest {
 		Transform transform = generateDefaultTransform();
 		core.setTransform(transform, true);
 		
-		Transform out0 = future.get(400, TimeUnit.MILLISECONDS);
+		Transform out0 = future.get(400, MILLISECONDS);
 		LOGGER.debug(out0.toString());
 		assertEquals("foo", out0.getFrameParent());
 		assertEquals("bar", out0.getFrameChild());
@@ -368,7 +371,7 @@ public class TransformerCoreDefaultTest {
 		future = core.requestTransform("foo", "baz", 5);
 		
 		try {
-			Transform t = future.get(400, TimeUnit.MILLISECONDS);
+			Transform t = future.get(400, MILLISECONDS);
 			LOGGER.error("wrong object: " + t);
 			fail("not available yet");
 		} catch(TimeoutException e) {
@@ -382,7 +385,7 @@ public class TransformerCoreDefaultTest {
 		assertTrue(future.isCancelled());
 		
 		try {
-			Transform t = future.get(400, TimeUnit.MILLISECONDS);
+			Transform t = future.get(400, MILLISECONDS);
 			LOGGER.error("wrong object: " + t);
 			fail("is cancelled");
 		} catch(CancellationException e) {

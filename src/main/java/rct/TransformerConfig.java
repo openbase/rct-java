@@ -1,5 +1,7 @@
 package rct;
 
+import static rct.TransformerConfig.CommunicatorType.AUTO;
+
 public class TransformerConfig {
 	
 	public enum CommunicatorType {
@@ -7,7 +9,7 @@ public class TransformerConfig {
 	};
 	
 	private long cacheTime = 30000;
-	private CommunicatorType commType = CommunicatorType.AUTO;
+	private CommunicatorType commType = AUTO;
 	
 	public TransformerConfig() {
 	}

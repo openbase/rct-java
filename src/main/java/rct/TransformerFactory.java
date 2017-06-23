@@ -42,7 +42,7 @@ public class TransformerFactory {
 		return createTransformReceiver(new TransformerConfig());
 	}
 	public TransformReceiver createTransformReceiver(TransformerConfig config) throws TransformerFactoryException {
-		Set<TransformListener> listeners = new HashSet<TransformListener>();
+		Set<TransformListener> listeners = new HashSet<>();
 		return createTransformReceiver(listeners, config);
 	}
 	public TransformReceiver createTransformReceiver(TransformListener listener) throws TransformerFactoryException {
@@ -53,7 +53,7 @@ public class TransformerFactory {
 	}
 
 	public TransformReceiver createTransformReceiver(TransformListener listener, TransformerConfig config) throws TransformerFactoryException {
-		Set<TransformListener> listeners = new HashSet<TransformListener>();
+		Set<TransformListener> listeners = new HashSet<>();
 		listeners.add(listener);
 		return createTransformReceiver(listeners, config);
 	}

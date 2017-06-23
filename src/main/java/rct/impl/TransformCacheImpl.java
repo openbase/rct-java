@@ -4,12 +4,13 @@ import java.util.LinkedList;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import static org.slf4j.LoggerFactory.getLogger;
 
 public class TransformCacheImpl implements TransformCache {
 
-	private static Logger logger = LoggerFactory.getLogger(TransformCacheImpl.class);
+	private static Logger logger = getLogger(TransformCacheImpl.class);
 	private long maxStorageTime;
-	private List<TransformInternal> storage_ = new LinkedList<TransformInternal>();
+	private List<TransformInternal> storage_ = new LinkedList<>();
 
 	public TransformCacheImpl(long maxStorageTime) {
 		this.maxStorageTime = maxStorageTime;

@@ -1,5 +1,12 @@
 package rct.impl;
 
+import static java.lang.Double.isNaN;
+import static java.lang.Long.MAX_VALUE;
+import static java.lang.Math.max;
+import static java.lang.Math.max;
+import static java.lang.Math.min;
+import static java.lang.Math.min;
+import static java.lang.Math.min;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -9,6 +16,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import static java.util.concurrent.Executors.newCachedThreadPool;
 import java.util.concurrent.Future;
 
 import javax.media.j3d.Transform3D;
@@ -17,11 +25,13 @@ import javax.vecmath.Quat4d;
 import javax.vecmath.Vector3d;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import static org.slf4j.LoggerFactory.getLogger;
 
 import rct.Transform;
 import rct.TransformerException;
 import rct.impl.TransformCache.TimeAndFrameID;
 import rct.impl.TransformRequest.FutureTransform;
+import static rct.impl.TransformerCoreDefault.WalkEnding.Identity;
 
 public class TransformerCoreDefault implements TransformerCore {
 
@@ -128,17 +138,17 @@ public class TransformerCoreDefault implements TransformerCore {
 
 	private static final int MAX_GRAPH_DEPTH = 1000;
 
-	private static Logger logger = LoggerFactory.getLogger(TransformerCoreDefault.class);
+	private static Logger logger = getLogger(TransformerCoreDefault.class);
 	private final Object lock = new Object();
-	private Map<String, Integer> frameIds = new HashMap<String, Integer>();
-	private List<TransformCache> frames = new LinkedList<TransformCache>();
-	private List<String> frameIdsReverse = new LinkedList<String>();
-	private Map<Integer, String> frameAuthority = new HashMap<Integer, String>();
+	private Map<String, Integer> frameIds = new HashMap<>();
+	private List<TransformCache> frames = new LinkedList<>();
+	private List<String> frameIdsReverse = new LinkedList<>();
+	private Map<Integer, String> frameAuthority = new HashMap<>();
 	private long cacheTime;
-	private Set<TransformRequest> requests = new HashSet<TransformRequest>();
-	private List<TimeAndFrameID> lctCache = new LinkedList<TimeAndFrameID>();
+	private Set<TransformRequest> requests = new HashSet<>();
+	private List<TimeAndFrameID> lctCache = new LinkedList<>();
 
-	private Executor executor = Executors.newCachedThreadPool();
+	private Executor executor = newCachedThreadPool();
 
 	public TransformerCoreDefault(long cacheTime) {
 		this.cacheTime = cacheTime;
@@ -186,10 +196,10 @@ public class TransformerCoreDefault implements TransformerCore {
 			logger.error("Parent frame is empty");
 			throw new TransformerException("Parent frame is empty");
 		}
-		if (Double.isNaN(quat.w) || Double.isNaN(quat.x)
-				|| Double.isNaN(quat.y) || Double.isNaN(quat.z)
-				|| Double.isNaN(vec.x) || Double.isNaN(vec.y)
-				|| Double.isNaN(vec.z)) {
+		if (isNaN(quat.w) || isNaN(quat.x)
+				|| isNaN(quat.y) || isNaN(quat.z)
+				|| isNaN(vec.x) || isNaN(vec.y)
+				|| isNaN(vec.z)) {
 			logger.error("Transform contains nan: " + transform);
 			throw new TransformerException("Transform contains nan: "
 					+ transform);
@@ -227,11 +237,7 @@ public class TransformerCoreDefault implements TransformerCore {
 			}
 		}
 		logger.debug("trigger check requests.");
-		executor.execute(new Runnable() {
-			public void run() {
-				checkRequests();
-			}
-		});
+		executor.execute(this::checkRequests);
 		logger.debug("set transform done");
 		return true;
 	}
@@ -330,7 +336,7 @@ public class TransformerCoreDefault implements TransformerCore {
 		// Short circuit if zero length transform to allow lookups on non
 		// existant links
 		if (source_id == target_id) {
-			f.finalize(WalkEnding.Identity, time);
+			f.finalize(Identity, time);
 			return;
 		}
 
@@ -367,7 +373,7 @@ public class TransformerCoreDefault implements TransformerCore {
 
 			// Early out... target frame is a direct parent of the source frame
 			if (frame == target_id) {
-				f.finalize(WalkEnding.TargetParentOfSource, time);
+				f.finalize(TargetParentOfSource, time);
 				return;
 			}
 
@@ -404,7 +410,7 @@ public class TransformerCoreDefault implements TransformerCore {
 
 			// Early out... source frame is a direct parent of the target frame
 			if (frame == source_id) {
-				f.finalize(WalkEnding.SourceParentOfTarget, time);
+				f.finalize(SourceParentOfTarget, time);
 				return;
 			}
 
@@ -428,7 +434,7 @@ public class TransformerCoreDefault implements TransformerCore {
 			}
 		}
 
-		f.finalize(WalkEnding.FullPath, time);
+		f.finalize(FullPath, time);
 
 		return;
 	}
@@ -453,7 +459,7 @@ public class TransformerCoreDefault implements TransformerCore {
 		// in the target is a direct parent
 		int frame = source_id;
 		int depth = 0;
-		long common_time = Long.MAX_VALUE;
+		long common_time = MAX_VALUE;
 		while (frame != 0) {
 			TransformCache cache = getFrame(frame);
 
@@ -471,7 +477,7 @@ public class TransformerCoreDefault implements TransformerCore {
 			}
 
 			if (latest.time != 0) {
-				common_time = Math.min(latest.time, common_time);
+				common_time = min(latest.time, common_time);
 			}
 
 			lctCache.add(latest);
@@ -481,7 +487,7 @@ public class TransformerCoreDefault implements TransformerCore {
 			// Early out... target frame is a direct parent of the source frame
 			if (frame == target_id) {
 				time = common_time;
-				if (time == Long.MAX_VALUE) {
+				if (time == MAX_VALUE) {
 					time = 0;
 				}
 				return;
@@ -500,7 +506,7 @@ public class TransformerCoreDefault implements TransformerCore {
 		// latest time and looking for a common parent
 		frame = target_id;
 		depth = 0;
-		common_time = Long.MAX_VALUE;
+		common_time = MAX_VALUE;
 		int common_parent = 0;
 		while (true) {
 			TransformCache cache = getFrame(frame);
@@ -516,7 +522,7 @@ public class TransformerCoreDefault implements TransformerCore {
 			}
 
 			if (latest.time != 0) {
-				common_time = Math.min(latest.time, common_time);
+				common_time = min(latest.time, common_time);
 			}
 
 			boolean found = false;
@@ -536,7 +542,7 @@ public class TransformerCoreDefault implements TransformerCore {
 			// Early out... source frame is a direct parent of the target frame
 			if (frame == source_id) {
 				time = common_time;
-				if (time == Long.MAX_VALUE) {
+				if (time == MAX_VALUE) {
 					time = 0;
 				}
 				return;
@@ -562,7 +568,7 @@ public class TransformerCoreDefault implements TransformerCore {
 		// Loop through the source -> root list until we hit the common parent
 		for (TimeAndFrameID it : lctCache) {
 			if (it.time != 0) {
-				common_time = Math.min(common_time, it.time);
+				common_time = min(common_time, it.time);
 			}
 
 			if (it.frameID == common_parent) {
@@ -570,7 +576,7 @@ public class TransformerCoreDefault implements TransformerCore {
 			}
 		}
 
-		if (common_time == Long.MAX_VALUE) {
+		if (common_time == MAX_VALUE) {
 			common_time = 0;
 		}
 
@@ -728,7 +734,7 @@ public class TransformerCoreDefault implements TransformerCore {
 
 	public Set<String> getFrameStrings() {
 		synchronized (lock) {
-			Set<String> vec = new HashSet<String>();
+			Set<String> vec = new HashSet<>();
 			for (int counter = 1; counter < frameIdsReverse.size(); counter++) {
 				vec.add(frameIdsReverse.get(counter));
 			}
@@ -787,7 +793,7 @@ public class TransformerCoreDefault implements TransformerCore {
 					authority = frameAuthority.get(counter);
 
 				double rate = counter_frame.getListLength()
-						/ Math.max(
+						/ max(
 								(counter_frame.getLatestTimestamp() / 1000.0 - counter_frame
 										.getOldestTimestamp() / 1000.0), 0.0001);
 
@@ -864,7 +870,7 @@ public class TransformerCoreDefault implements TransformerCore {
 				}
 
 				double rate = cache.getListLength()
-						/ Math.max((cache.getLatestTimestamp() / 1000.0 - cache
+						/ max((cache.getLatestTimestamp() / 1000.0 - cache
 								.getOldestTimestamp() / 1000.0), 0.0001);
 
 				mstream += frameIdsReverse.get(cfid) + ": \n";

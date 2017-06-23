@@ -1,5 +1,10 @@
 package rct;
 
+import static java.lang.Math.PI;
+import static java.lang.Math.abs;
+import static java.lang.Math.asin;
+import static java.lang.Math.atan2;
+import static java.lang.String.format;
 import javax.media.j3d.Transform3D;
 import javax.vecmath.Matrix3d;
 import javax.vecmath.Matrix4d;
@@ -112,20 +117,20 @@ public class Transform {
 		// this code is taken from buttel btMatrix3x3 getEulerYPR().
 		// http://bulletphysics.org/Bullet/BulletFull/btMatrix3x3_8h_source.html
 		// first use the normal calculus
-		double yawOut = Math.atan2(rot.m10, rot.m00);
-		double pitchOut = Math.asin(-rot.m20);
-		double rollOut = Math.atan2(rot.m21, rot.m22);
+		double yawOut = atan2(rot.m10, rot.m00);
+		double pitchOut = asin(-rot.m20);
+		double rollOut = atan2(rot.m21, rot.m22);
 
 		// on pitch = +/-HalfPI
-		if (Math.abs(pitchOut) == Math.PI / 2.0) {
+		if (abs(pitchOut) == PI / 2.0) {
 			if (yawOut > 0)
-				yawOut -= Math.PI;
+				yawOut -= PI;
 			else
-				yawOut += Math.PI;
+				yawOut += PI;
 			if (pitchOut > 0)
-				pitchOut -= Math.PI;
+				pitchOut -= PI;
 			else
-				pitchOut += Math.PI;
+				pitchOut += PI;
 		}
 
 		return new Vector3d(yawOut, pitchOut, rollOut);
@@ -221,8 +226,7 @@ public class Transform {
 
 		Matrix4d mat = new Matrix4d();
 		transform.get(mat);
-		String tStr = String
-				.format("{%.2f %.2f %.2f %.2f; %.2f %.2f %.2f %.2f; %.2f %.2f %.2f %.2f; %.2f %.2f %.2f %.2f}",
+		String tStr = format("{%.2f %.2f %.2f %.2f; %.2f %.2f %.2f %.2f; %.2f %.2f %.2f %.2f; %.2f %.2f %.2f %.2f}",
 						mat.m00, mat.m01, mat.m02, mat.m03, mat.m10, mat.m11,
 						mat.m12, mat.m13, mat.m20, mat.m21, mat.m22, mat.m23,
 						mat.m30, mat.m31, mat.m32, mat.m33);

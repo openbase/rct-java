@@ -1,33 +1,39 @@
 package rct.impl;
 
+import static java.lang.System.currentTimeMillis;
+import static java.lang.System.err;
+import static java.lang.System.exit;
+import static java.lang.System.out;
+import static java.lang.Thread.sleep;
 import rct.Transform;
 import rct.TransformReceiver;
 import rct.TransformerFactory;
+import static rct.TransformerFactory.getInstance;
 
 public class Echo {
 
 		public static void main(String[] args) {
 
 		if (args.length != 2) {
-			System.err.println("Required 2 arguments!");
-			System.exit(1);
+			err.println("Required 2 arguments!");
+			exit(1);
 		}
 		try {
-			TransformReceiver transformer = TransformerFactory.getInstance()
+			TransformReceiver transformer = getInstance()
 					.createTransformReceiver();
 
-			Thread.sleep(1000);
+			sleep(1000);
 
 			Transform t = transformer.lookupTransform(args[0], args[1],
-					System.currentTimeMillis());
+					currentTimeMillis());
 
-			System.out.println(t);
+			out.println(t);
 		} catch (Exception e) {
 			e.printStackTrace();
-			System.exit(1);
+			exit(1);
 		}
 
-		System.exit(0);
+		exit(0);
 	}
 
 }
