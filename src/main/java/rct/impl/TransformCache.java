@@ -2,46 +2,67 @@ package rct.impl;
 
 public interface TransformCache {
 
-	public class TimeAndFrameID {
-		public TimeAndFrameID(long time, int frameID) {
-			this.time = time;
-			this.frameID = frameID;
-		}
+    public class TimeAndFrameID {
 
-		public long time;
-		public int frameID;
-	}
+        public TimeAndFrameID(long time, int frameID) {
+            this.time = time;
+            this.frameID = frameID;
+        }
 
-	boolean getData(long time, TransformInternal data_out); // returns false if
-															// data unavailable
-															// (should be thrown
-															// as lookup
-															// exception
+        public long time;
+        public int frameID;
+    }
 
-	/** \brief Insert data into the cache */
-	boolean insertData(TransformInternal new_data);
+    boolean getData(long time, TransformInternal dataOut); // returns false if
+    // data unavailable
+    // (should be thrown
+    // as lookup
+    // exception
 
-	/** @brief Clear the list of stored values */
-	void clearList();
+    /**
+     * \brief Insert data into the cache
+     *
+     * @param newData
+     * @return
+     */
+    boolean insertData(TransformInternal newData);
 
-	/** \brief Retrieve the parent at a specific time */
-	int getParent(long time);
+    /**
+     * @brief Clear the list of stored values
+     */
+    void clearList();
 
-	/**
-	 * \brief Get the latest time stored in this cache, and the parent
-	 * associated with it. Returns parent = 0 if no data.
-	 */
-	TimeAndFrameID getLatestTimeAndParent();
+    /**
+     * \brief Retrieve the parent at a specific time
+     *
+     * @param time
+     * @return
+     */
+    int getParent(long time);
 
-	// / Debugging information methods
-	/** @brief Get the length of the stored list */
-	int getListLength();
+    /**
+     * \brief Get the latest time stored in this cache, and the parent
+     * associated with it. Returns parent = 0 if no data.
+     *
+     * @return
+     */
+    TimeAndFrameID getLatestTimeAndParent();
 
-	/** @brief Get the latest timestamp cached */
-	long getLatestTimestamp();
+    // / Debugging information methods
+    /**
+     * @return * @brief Get the length of the stored list
+     */
+    int getListLength();
 
-	/** @brief Get the oldest timestamp cached */
-	long getOldestTimestamp();
-	
-	boolean isValid();
+    /**
+     * @return * @brief Get the latest timestamp cached
+     */
+    long getLatestTimestamp();
+
+    /**
+     * @return * @brief Get the oldest timestamp cached
+     */
+    long getOldestTimestamp();
+
+    boolean isValid();
 }
