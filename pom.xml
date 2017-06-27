@@ -112,7 +112,7 @@
             <url>https://mvn.cit-ec.de/nexus/content/repositories/releases/</url>
             <layout>default</layout>
             <releases>
-                <enabled>false</enabled>
+                <enabled>true</enabled>
             </releases>
         </repository>
     </repositories>
