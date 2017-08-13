@@ -305,8 +305,8 @@ public class TransformerCoreDefault implements TransformerCore {
         TransformAccumImpl accum = new TransformAccumImpl();
         try {
             walkToTopParent(accum, time, targetId, sourceId);
-        } catch (TransformerException e) {
-            throw new TransformerException("No matching transform found", e);
+        } catch (TransformerException ex) {
+            throw new TransformerException("No matching transform found", ex);
         }
 
         Transform3D t3d = new Transform3D(accum.resultQuat, accum.resultVec, 1.0);
@@ -619,7 +619,7 @@ public class TransformerCoreDefault implements TransformerCore {
                     // the future object and remove the request.
                     request.future.set(transform);
                     requests.remove(request);
-                } catch (TransformerException e) {
+                } catch (TransformerException ex) {
                     // expected, just proceed
                 }
             }
@@ -861,7 +861,7 @@ public class TransformerCoreDefault implements TransformerCore {
         TransformAccumDummy accum = new TransformAccumDummy();
         try {
             walkToTopParent(accum, time, targetId, sourceId);
-        } catch (TransformerException e) {
+        } catch (TransformerException ex) {
             return false;
         }
         return true;

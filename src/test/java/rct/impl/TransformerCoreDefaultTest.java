@@ -52,8 +52,8 @@ public class TransformerCoreDefaultTest {
 			TransformerCoreDefault core = new TransformerCoreDefault(1000);
 			core.setTransform(transform0, false);
 			fail("a TransformerException was expected");
-		} catch(TransformerException e) {
-			LOGGER.debug("expected transformer exception", e);
+		} catch(TransformerException ex) {
+			LOGGER.debug("expected transformer exception", ex);
 		}
 		
 		try {
@@ -64,8 +64,8 @@ public class TransformerCoreDefaultTest {
 			TransformerCoreDefault core = new TransformerCoreDefault(1000);
 			core.setTransform(transform0, false);
 			fail("a TransformerException was expected");
-		} catch(TransformerException e) {
-			LOGGER.debug("expected transformer exception", e);
+		} catch(TransformerException ex) {
+			LOGGER.debug("expected transformer exception", ex);
 		}
 		
 		try {
@@ -78,8 +78,8 @@ public class TransformerCoreDefaultTest {
 			TransformerCoreDefault core = new TransformerCoreDefault(1000);
 			core.setTransform(transform0, false);
 			fail("a TransformerException was expected");
-		} catch(TransformerException e) {
-			LOGGER.debug("expected transformer exception", e);
+		} catch(TransformerException ex) {
+			LOGGER.debug("expected transformer exception", ex);
 		}
 	}
 
@@ -153,7 +153,7 @@ public class TransformerCoreDefaultTest {
 			// expect exception because interpolation with one value is not possible
 			core.lookupTransform("foo", "bar", 1);
 			fail("interpolation with one value is not possible");
-		} catch (TransformerException e) {
+		} catch (TransformerException ex) {
 			// expected
 		}
 		transform1.setTime(10);
@@ -163,7 +163,7 @@ public class TransformerCoreDefaultTest {
 			// expect exception because extrapolation into future is not possible
 			core.lookupTransform("foo", "bar", 100);
 			fail("extrapolation into future is not possible");
-		} catch (TransformerException e) {
+		} catch (TransformerException ex) {
 			// expected
 		}
 	}
@@ -341,7 +341,7 @@ public class TransformerCoreDefaultTest {
 			Transform t = future.get(400, TimeUnit.MILLISECONDS);
 			LOGGER.error("wrong object: " + t);
 			fail("not available yet");
-		} catch(TimeoutException e) {
+		} catch(TimeoutException ex) {
 			// expected
 		}
 		
@@ -371,7 +371,7 @@ public class TransformerCoreDefaultTest {
 			Transform t = future.get(400, TimeUnit.MILLISECONDS);
 			LOGGER.error("wrong object: " + t);
 			fail("not available yet");
-		} catch(TimeoutException e) {
+		} catch(TimeoutException ex) {
 			// expected
 		}
 		
@@ -385,7 +385,7 @@ public class TransformerCoreDefaultTest {
 			Transform t = future.get(400, TimeUnit.MILLISECONDS);
 			LOGGER.error("wrong object: " + t);
 			fail("is cancelled");
-		} catch(CancellationException e) {
+		} catch(CancellationException ex) {
 			// expected
 		}
 	}

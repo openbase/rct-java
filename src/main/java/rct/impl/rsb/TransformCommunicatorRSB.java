@@ -74,17 +74,17 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
             rsbInformerTransform.activate();
             rsbInformerSync.activate();
 
-        } catch (InitializeException e) {
-            throw new TransformerException("Can not initialize rsb communicator. Reason: " + e.getMessage(), e);
-        } catch (RSBException e) {
-            throw new TransformerException("Can not initialize rsb communicator. Reason: " + e.getMessage(), e);
+        } catch (InitializeException ex) {
+            throw new TransformerException("Can not initialize rsb communicator. Reason: " + ex.getMessage(), ex);
+        } catch (RSBException ex) {
+            throw new TransformerException("Can not initialize rsb communicator. Reason: " + ex.getMessage(), ex);
         }
 
         try {
             rsbListenerTransform.addHandler(this::transformCallback, true);
             rsbListenerSync.addHandler(this::syncCallback, true);
-        } catch (InterruptedException e) {
-            throw new TransformerException("Can not initialize rsb communicator. Reason: " + e.getMessage(), e);
+        } catch (InterruptedException ex) {
+            throw new TransformerException("Can not initialize rsb communicator. Reason: " + ex.getMessage(), ex);
         }
 
         requestSync();
@@ -101,9 +101,9 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
         Event ev = new Event(rsbInformerSync.getScope(), Void.class, null);
         try {
             rsbInformerSync.send(ev);
-        } catch (RSBException e) {
+        } catch (RSBException ex) {
             throw new TransformerException("Can not trigger to send transforms. Reason: "
-                    + e.getMessage(), e);
+                    + ex.getMessage(), ex);
         }
     }
 
@@ -142,9 +142,9 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
 
             try {
                 rsbInformerTransform.send(event);
-            } catch (RSBException e) {
+            } catch (RSBException ex) {
                 throw new TransformerException("Can not send transform: "
-                        + transform + ". Reason: " + e.getMessage(), e);
+                        + transform + ". Reason: " + ex.getMessage(), ex);
             }
         }
     }
@@ -229,8 +229,8 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
             event.setType(Transform.class);
             try {
                 rsbInformerTransform.send(event);
-            } catch (RSBException e) {
-                LOGGER.error("Can not publish cached dynamic transform " + sendCacheDynamic.get(key) + ". Reason: " + e.getMessage(), e);
+            } catch (RSBException ex) {
+                LOGGER.error("Can not publish cached dynamic transform " + sendCacheDynamic.get(key) + ". Reason: " + ex.getMessage(), ex);
             }
         }
         for (String key : sendCacheStatic.keySet()) {
@@ -241,8 +241,8 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
             event.setType(Transform.class);
             try {
                 rsbInformerTransform.publish(event);
-            } catch (RSBException e) {
-                LOGGER.error("Can not publish cached static transform " + sendCacheDynamic.get(key) + ". Reason: " + e.getMessage(), e);
+            } catch (RSBException ex) {
+                LOGGER.error("Can not publish cached static transform " + sendCacheDynamic.get(key) + ". Reason: " + ex.getMessage(), ex);
             }
         }
     }
@@ -260,8 +260,8 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
                     Thread.currentThread().interrupt();
                     throw ex;
                 }
-            } catch (RSBException | InterruptedException e) {
-                LOGGER.error("Can not deactivate rsb listener. Reason: " + e.getMessage());
+            } catch (RSBException | InterruptedException ex) {
+                LOGGER.error("Can not deactivate rsb listener. Reason: " + ex.getMessage());
             }
         }
 
@@ -273,8 +273,8 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
                     Thread.currentThread().interrupt();
                     throw ex;
                 }
-            } catch (RSBException | InterruptedException e) {
-                LOGGER.error("Can not deactivate rsb listener. Reason: " + e.getMessage());
+            } catch (RSBException | InterruptedException ex) {
+                LOGGER.error("Can not deactivate rsb listener. Reason: " + ex.getMessage());
             }
         }
 
@@ -286,8 +286,8 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
                     Thread.currentThread().interrupt();
                     throw ex;
                 }
-            } catch (RSBException | InterruptedException e) {
-                LOGGER.error("Can not deactivate rsb listener. Reason: " + e.getMessage());
+            } catch (RSBException | InterruptedException ex) {
+                LOGGER.error("Can not deactivate rsb listener. Reason: " + ex.getMessage());
             }
         }
 
@@ -299,8 +299,8 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
                     Thread.currentThread().interrupt();
                     throw ex;
                 }
-            } catch (RSBException | InterruptedException e) {
-                LOGGER.error("Can not deactivate rsb listener. Reason: " + e.getMessage());
+            } catch (RSBException | InterruptedException ex) {
+                LOGGER.error("Can not deactivate rsb listener. Reason: " + ex.getMessage());
             }
         }
     }
