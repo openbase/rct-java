@@ -158,9 +158,11 @@ public class TransformerCoreDefault implements TransformerCore {
     public void clear() {
         synchronized (lock) {
             if (frames.size() > 1) {
-                frames.stream().filter((f) -> (f.isValid())).forEachOrdered((f) -> {
-                    f.clearList();
-                });
+                for (TransformCache f : frames) {
+                    if (f.isValid()) {
+                        f.clearList();
+                    }
+                }
             }
         }
     }
@@ -620,7 +622,7 @@ public class TransformerCoreDefault implements TransformerCore {
     private void checkRequests() {
         // go through all request and check if they can be answered
         synchronized (lock) {
-            new ArrayList<>(requests).forEach((request) -> {
+            for(final TransformRequest request : new ArrayList<>(requests)) {
                 try {
                     final Transform transform = lookupTransformNoLock(request.target_frame, request.source_frame, request.time);
                     // request can be answered. publish the transform through
@@ -630,7 +632,7 @@ public class TransformerCoreDefault implements TransformerCore {
                 } catch (TransformerException ex) {
                     // expected, just proceed
                 }
-            });
+            }
         }
     }
 
