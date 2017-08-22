@@ -126,9 +126,9 @@ public class TransformCacheImpl implements TransformCache {
             }
 
             return true;
-        } catch (RuntimeException e) {
-            LOGGER.error("Could not get data. Reason: " + e.getMessage());
-            LOGGER.debug("Could not get data", e);
+        } catch (RuntimeException ex) {
+            LOGGER.error("Could not get data. Reason: " + ex.getMessage());
+            LOGGER.debug("Could not get data", ex);
             return false;
         }
     }
@@ -192,8 +192,8 @@ public class TransformCacheImpl implements TransformCache {
             }
 
             return p_temp_1.frame_id;
-        } catch (RuntimeException e) {
-            LOGGER.error("Could not get parent", e);
+        } catch (RuntimeException ex) {
+            LOGGER.error("Could not get parent", ex);
             return 0;
         }
     }

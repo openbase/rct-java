@@ -26,6 +26,7 @@ import rct.impl.TransformRequest.FutureTransform;
 public class TransformerCoreDefault implements TransformerCore {
 
     private enum WalkEnding {
+
         Identity, TargetParentOfSource, SourceParentOfTarget, FullPath,
     };
 
@@ -232,17 +233,19 @@ public class TransformerCoreDefault implements TransformerCore {
 
     private int lookupOrInsertFrameNumber(String frameId) {
         int retval = 0;
-        if (!frameIds.containsKey(frameId)) {
-            LOGGER.debug("frame id is not known for string \"" + frameId + "\"");
-            retval = frames.size();
-            LOGGER.debug("add null transform to cache");
-            frames.add(new TransformCacheNull());
-            LOGGER.debug("generated mapping \"" + frameId + "\" -> " + retval + " (and reverse)");
-            frameIds.put(frameId, retval);
-            frameIdsReverse.add(frameId);
-        } else {
-            retval = frameIds.get(frameId);
-            LOGGER.debug("known mapping \"" + frameId + "\" -> " + retval);
+        synchronized (lock) {
+            if (!frameIds.containsKey(frameId)) {
+                LOGGER.debug("frame id is not known for string \"" + frameId + "\"");
+                retval = frames.size();
+                LOGGER.debug("add null transform to cache");
+                frames.add(new TransformCacheNull());
+                LOGGER.debug("generated mapping \"" + frameId + "\" -> " + retval + " (and reverse)");
+                frameIds.put(frameId, retval);
+                frameIdsReverse.add(frameId);
+            } else {
+                retval = frameIds.get(frameId);
+                LOGGER.debug("known mapping \"" + frameId + "\" -> " + retval);
+            }
         }
 
         return retval;
@@ -250,21 +253,25 @@ public class TransformerCoreDefault implements TransformerCore {
 
     private TransformCache getFrame(int frameId) {
         // / @todo check larger values too
-        if (frameId == 0 || frameId > frames.size()) {
-            return null;
-        } else {
-            return frames.get(frameId);
+        synchronized (lock) {
+            if (frameId == 0 || frameId > frames.size()) {
+                return null;
+            } else {
+                return frames.get(frameId);
+            }
         }
     }
 
     private TransformCache allocateFrame(int cfid, boolean isStatic) {
-        if (isStatic) {
-            frames.set(cfid, new TransformCacheStatic());
-        } else {
-            frames.set(cfid, new TransformCacheImpl(cacheTime));
-        }
+        synchronized (lock) {
+            if (isStatic) {
+                frames.set(cfid, new TransformCacheStatic());
+            } else {
+                frames.set(cfid, new TransformCacheImpl(cacheTime));
+            }
 
-        return frames.get(cfid);
+            return frames.get(cfid);
+        }
     }
 
     @Override
@@ -287,8 +294,7 @@ public class TransformerCoreDefault implements TransformerCore {
                 }
 
                 Transform3D t = new Transform3D();
-                Transform identity = new Transform(t, targetFrame,
-                        sourceFrame, newTime);
+                Transform identity = new Transform(t, targetFrame, sourceFrame, newTime);
                 return identity;
             }
 
@@ -305,8 +311,8 @@ public class TransformerCoreDefault implements TransformerCore {
         TransformAccumImpl accum = new TransformAccumImpl();
         try {
             walkToTopParent(accum, time, targetId, sourceId);
-        } catch (TransformerException e) {
-            throw new TransformerException("No matching transform found", e);
+        } catch (TransformerException ex) {
+            throw new TransformerException("No matching transform found", ex);
         }
 
         Transform3D t3d = new Transform3D(accum.resultQuat, accum.resultVec, 1.0);
@@ -314,15 +320,13 @@ public class TransformerCoreDefault implements TransformerCore {
         return outputTransform;
     }
 
-    private void walkToTopParent(TransformAccum f, long time, int targetId,
-            int sourceId) throws TransformerException {
+    private void walkToTopParent(TransformAccum f, long time, int targetId, int sourceId) throws TransformerException {
         // Short circuit if zero length transform to allow lookups on non
         // existant links
         if (sourceId == targetId) {
             f.finalize(WalkEnding.Identity, time);
             return;
         }
-
         // If getting the latest get the latest common time
         if (time == 0) {
             time = getLatestCommonTime(targetId, sourceId);
@@ -602,7 +606,11 @@ public class TransformerCoreDefault implements TransformerCore {
             int targetId = lookupFrameNumber(targetFrame);
             int sourceId = lookupFrameNumber(sourceFrame);
             if (canTransformNoLock(targetId, sourceId, time)) {
-                return executor.submit(() -> lookupTransform(targetFrame, sourceFrame, time));
+                try {
+                    future.set(lookupTransformNoLock(targetFrame, sourceFrame, time));
+                } catch (TransformerException ex) {
+                    LOGGER.error("Transformation from [" + sourceFrame + "] to [" + targetFrame + "] failed even though can transform returned true", ex);
+                }
             }
             requests.add(new TransformRequest(targetFrame, sourceFrame, time, future));
         }
@@ -611,19 +619,19 @@ public class TransformerCoreDefault implements TransformerCore {
 
     private void checkRequests() {
         // go through all request and check if they can be answered
-        new ArrayList<>(requests).forEach((request) -> {
-            synchronized (lock) {
+        synchronized (lock) {
+            new ArrayList<>(requests).forEach((request) -> {
                 try {
                     final Transform transform = lookupTransformNoLock(request.target_frame, request.source_frame, request.time);
                     // request can be answered. publish the transform through
                     // the future object and remove the request.
                     request.future.set(transform);
                     requests.remove(request);
-                } catch (TransformerException e) {
+                } catch (TransformerException ex) {
                     // expected, just proceed
                 }
-            }
-        });
+            });
+        }
     }
 
     @Override
@@ -861,7 +869,7 @@ public class TransformerCoreDefault implements TransformerCore {
         TransformAccumDummy accum = new TransformAccumDummy();
         try {
             walkToTopParent(accum, time, targetId, sourceId);
-        } catch (TransformerException e) {
+        } catch (TransformerException ex) {
             return false;
         }
         return true;

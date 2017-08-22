@@ -76,8 +76,8 @@ public class TransformerFactory {
         try {
             comm.addTransformListener(core);
             comm.init(config);
-        } catch (TransformerException e) {
-            throw new TransformerFactoryException("Can not create Transformer because communicator can not be initialized", e);
+        } catch (TransformerException ex) {
+            throw new TransformerFactoryException("Can not create Transformer because communicator can not be initialized", ex);
         }
 
         return new TransformReceiver(core, comm, config);
@@ -94,8 +94,8 @@ public class TransformerFactory {
         TransformCommunicator comm = new TransformCommunicatorRSB(name);
         try {
             comm.init(config);
-        } catch (TransformerException e) {
-            throw new TransformerFactoryException("Can not create Transformer because communicator can not be initialized", e);
+        } catch (TransformerException ex) {
+            throw new TransformerFactoryException("Can not create Transformer because communicator can not be initialized", ex);
         }
 
         return new TransformPublisher(comm, config);

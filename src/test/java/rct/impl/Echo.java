@@ -22,8 +22,8 @@ public class Echo {
 					System.currentTimeMillis());
 
 			System.out.println(t);
-		} catch (Exception e) {
-			e.printStackTrace();
+		} catch (Exception ex) {
+			ex.printStackTrace();
 			System.exit(1);
 		}
 
