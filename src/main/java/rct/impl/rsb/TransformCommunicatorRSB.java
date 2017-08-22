@@ -100,7 +100,7 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
         // trigger other instances to send transforms
         Event ev = new Event(rsbInformerSync.getScope(), Void.class, null);
         try {
-            rsbInformerSync.send(ev);
+            rsbInformerSync.publish(ev);
         } catch (RSBException ex) {
             throw new TransformerException("Can not trigger to send transforms. Reason: "
                     + ex.getMessage(), ex);
@@ -141,7 +141,7 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
             }
 
             try {
-                rsbInformerTransform.send(event);
+                rsbInformerTransform.publish(event);
             } catch (RSBException ex) {
                 throw new TransformerException("Can not send transform: "
                         + transform + ". Reason: " + ex.getMessage(), ex);
@@ -228,7 +228,7 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
             event.setScope(new Scope(RCT_SCOPE_TRANSFORM_DYNAMIC));
             event.setType(Transform.class);
             try {
-                rsbInformerTransform.send(event);
+                rsbInformerTransform.publish(event);
             } catch (RSBException ex) {
                 LOGGER.error("Can not publish cached dynamic transform " + sendCacheDynamic.get(key) + ". Reason: " + ex.getMessage(), ex);
             }
