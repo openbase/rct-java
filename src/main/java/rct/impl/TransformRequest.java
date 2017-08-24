@@ -22,6 +22,11 @@ public class TransformRequest {
         this.future = future;
     }
 
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + "[" + source_frame + " -> " + target_frame + " at " + time + " solved[" + future.isDone() + "]]";
+    }
+
     static public class FutureTransform implements Future<Transform> {
 
         private Transform transform = null;
