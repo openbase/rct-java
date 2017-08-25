@@ -74,7 +74,6 @@ public class TransformReceiver {
      * @param time The time at which the value of the transform is desired. (0 will get the latest)
      * @return A future object representing the request status and transform
      * between the frames
-     *
      */
     public Future<Transform> requestTransform(String targetFrame, String sourceFrame, long time) {
         return core.requestTransform(targetFrame, sourceFrame, time);

@@ -255,7 +255,9 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
         if (rsbListenerTransform != null) {
             try {
                 try {
-                    rsbListenerTransform.deactivate();
+                    if (rsbListenerTransform.isActive()) {
+                        rsbListenerTransform.deactivate();
+                    }
                 } catch (InterruptedException ex) {
                     Thread.currentThread().interrupt();
                     throw ex;
@@ -268,7 +270,9 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
         if (rsbListenerSync != null) {
             try {
                 try {
-                    rsbListenerSync.deactivate();
+                    if (rsbListenerSync.isActive()) {
+                        rsbListenerSync.deactivate();
+                    }
                 } catch (InterruptedException ex) {
                     Thread.currentThread().interrupt();
                     throw ex;
@@ -281,7 +285,9 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
         if (rsbInformerTransform != null) {
             try {
                 try {
-                    rsbInformerTransform.deactivate();
+                    if (rsbInformerTransform.isActive()) {
+                        rsbInformerTransform.deactivate();
+                    }
                 } catch (InterruptedException ex) {
                     Thread.currentThread().interrupt();
                     throw ex;
@@ -294,7 +300,9 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
         if (rsbInformerSync != null) {
             try {
                 try {
-                    rsbInformerSync.deactivate();
+                    if (rsbInformerSync.isActive()) {
+                        rsbInformerSync.deactivate();
+                    }
                 } catch (InterruptedException ex) {
                     Thread.currentThread().interrupt();
                     throw ex;
