@@ -15,6 +15,11 @@ import javax.media.j3d.Transform3D;
 import javax.vecmath.Matrix3d;
 import javax.vecmath.Quat4d;
 import javax.vecmath.Vector3d;
+import org.openbase.jul.exception.CouldNotPerformException;
+import org.openbase.jul.exception.NotAvailableException;
+import org.openbase.jul.exception.printer.ExceptionPrinter;
+import org.openbase.jul.exception.printer.LogLevel;
+import org.openbase.jul.schedule.SyncObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -136,7 +141,9 @@ public class TransformerCoreDefault implements TransformerCore {
     private static final int MAX_GRAPH_DEPTH = 1000;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TransformerCoreDefault.class);
-    private final Object lock = new Object();
+
+    private final SyncObject transformationFrameMapLock = new SyncObject("TransformationFrameMapLock");
+
     private final Map<String, Integer> frameIds = new HashMap<>();
     private final List<TransformCache> frames = new LinkedList<>();
     private final List<String> frameIdsReverse = new LinkedList<>();
@@ -149,20 +156,24 @@ public class TransformerCoreDefault implements TransformerCore {
 
     public TransformerCoreDefault(long cacheTime) {
         this.cacheTime = cacheTime;
-        frameIds.put("NO_PARENT", 0);
-        frames.add(new TransformCacheNull());
-        frameIdsReverse.add("NO_PARENT");
+        synchronized (transformationFrameMapLock) {
+            frameIds.put("NO_PARENT", 0);
+            frames.add(new TransformCacheNull());
+            frameIdsReverse.add("NO_PARENT");
+            transformationFrameMapLock.notifyAll();
+        }
     }
 
     @Override
     public void clear() {
-        synchronized (lock) {
+        synchronized (transformationFrameMapLock) {
             if (frames.size() > 1) {
                 for (TransformCache f : frames) {
                     if (f.isValid()) {
                         f.clearList();
                     }
                 }
+                transformationFrameMapLock.notifyAll();
             }
         }
     }
@@ -200,11 +211,12 @@ public class TransformerCoreDefault implements TransformerCore {
         }
 
         // perform the insertion
-        synchronized (lock) {
+        synchronized (transformationFrameMapLock) {
             LOGGER.debug("lookup child frame number");
             int frameNumberChild = lookupOrInsertFrameNumber(frameChild);
             LOGGER.debug("get frame \"" + frameNumberChild + "\"");
             TransformCache frame = getFrame(frameNumberChild);
+
             if (!frame.isValid()) {
                 LOGGER.debug("allocate frame " + frameNumberChild);
                 frame = allocateFrame(frameNumberChild, isStatic);
@@ -226,16 +238,16 @@ public class TransformerCoreDefault implements TransformerCore {
                         + "\nPossible reasons are listed at http://wiki.ros.org/tf/Errors%%20explained");
                 return false;
             }
+            LOGGER.debug("trigger check requests.");
+            executor.execute(this::checkRequests);
+            LOGGER.debug("set transform done");
         }
-        LOGGER.debug("trigger check requests.");
-        executor.execute(this::checkRequests);
-        LOGGER.debug("set transform done");
         return true;
     }
 
     private int lookupOrInsertFrameNumber(String frameId) {
         int retval = 0;
-        synchronized (lock) {
+        synchronized (transformationFrameMapLock) {
             if (!frameIds.containsKey(frameId)) {
                 LOGGER.debug("frame id is not known for string \"" + frameId + "\"");
                 retval = frames.size();
@@ -244,6 +256,7 @@ public class TransformerCoreDefault implements TransformerCore {
                 LOGGER.debug("generated mapping \"" + frameId + "\" -> " + retval + " (and reverse)");
                 frameIds.put(frameId, retval);
                 frameIdsReverse.add(frameId);
+                transformationFrameMapLock.notifyAll();
             } else {
                 retval = frameIds.get(frameId);
                 LOGGER.debug("known mapping \"" + frameId + "\" -> " + retval);
@@ -255,7 +268,7 @@ public class TransformerCoreDefault implements TransformerCore {
 
     private TransformCache getFrame(int frameId) {
         // / @todo check larger values too
-        synchronized (lock) {
+        synchronized (transformationFrameMapLock) {
             if (frameId == 0 || frameId > frames.size()) {
                 return null;
             } else {
@@ -265,7 +278,7 @@ public class TransformerCoreDefault implements TransformerCore {
     }
 
     private TransformCache allocateFrame(int cfid, boolean isStatic) {
-        synchronized (lock) {
+        synchronized (transformationFrameMapLock) {
             if (isStatic) {
                 frames.set(cfid, new TransformCacheStatic());
             } else {
@@ -278,29 +291,32 @@ public class TransformerCoreDefault implements TransformerCore {
 
     @Override
     public Transform lookupTransform(String targetFrame, String sourceFrame, long time) throws TransformerException {
-        synchronized (lock) {
+        synchronized (transformationFrameMapLock) {
+            try {
+                if (targetFrame.equals(sourceFrame)) {
 
-            if (targetFrame.equals(sourceFrame)) {
-
-                long newTime;
-                if (time == 0) {
-                    int targetId = lookupFrameNumber(targetFrame);
-                    TransformCache cache = getFrame(targetId);
-                    if (cache.isValid()) {
-                        newTime = cache.getLatestTimestamp();
+                    long newTime;
+                    if (time == 0) {
+                        int targetId = lookupFrameNumber(targetFrame);
+                        TransformCache cache = getFrame(targetId);
+                        if (cache.isValid()) {
+                            newTime = cache.getLatestTimestamp();
+                        } else {
+                            newTime = time;
+                        }
                     } else {
                         newTime = time;
                     }
-                } else {
-                    newTime = time;
+
+                    Transform3D t = new Transform3D();
+                    Transform identity = new Transform(t, targetFrame, sourceFrame, newTime);
+                    return identity;
                 }
 
-                Transform3D t = new Transform3D();
-                Transform identity = new Transform(t, targetFrame, sourceFrame, newTime);
-                return identity;
+                return lookupTransformNoLock(targetFrame, sourceFrame, time);
+            } catch (CouldNotPerformException ex) {
+                throw new TransformerException("Could not lookup transformation", ex);
             }
-
-            return lookupTransformNoLock(targetFrame, sourceFrame, time);
         }
     }
 
@@ -554,18 +570,21 @@ public class TransformerCoreDefault implements TransformerCore {
     }
 
     private String lookupFrameString(int frameId) throws TransformerException {
-        if (frameId >= frameIdsReverse.size()) {
-            throw new TransformerException("Reverse lookup of frame id " + frameId + " failed!");
-        } else {
-            return frameIdsReverse.get(frameId);
+        synchronized (transformationFrameMapLock) {
+            if (frameId >= frameIdsReverse.size()) {
+                throw new TransformerException("Reverse lookup of frame id " + frameId + " failed!");
+            } else {
+                return frameIdsReverse.get(frameId);
+            }
         }
     }
 
-    private int lookupFrameNumber(String frameId) {
-        if (frameIds.containsKey(frameId)) {
+    private int lookupFrameNumber(String frameId) throws NotAvailableException {
+        synchronized (transformationFrameMapLock) {
+            if (!frameIds.containsKey(frameId)) {
+                throw new NotAvailableException("FrameId[" + frameId + "]");
+            }
             return frameIds.get(frameId);
-        } else {
-            return 0;
         }
     }
 
@@ -578,12 +597,11 @@ public class TransformerCoreDefault implements TransformerCore {
             throw new TransformerException("Invalid argument \"" + frameId + "\" passed to " + functionNameArg + " in tf2 frame_ids cannot start with a '/' like: ");
         }
 
-        int id = lookupFrameNumber(frameId);
-        if (id == 0) {
-            throw new TransformerException("\"" + frameId + "\" passed to " + functionNameArg + " does not exist. ");
+        try {
+            return lookupFrameNumber(frameId);
+        } catch (NotAvailableException ex) {
+            throw new TransformerException("\"" + frameId + "\" passed to " + functionNameArg + " does not exist. ", ex);
         }
-
-        return id;
     }
 
     @Override
@@ -602,12 +620,10 @@ public class TransformerCoreDefault implements TransformerCore {
     }
 
     @Override
-    public Future<Transform> requestTransform(String targetFrame, String sourceFrame, long time) {
-        FutureTransform future = new FutureTransform();
-        synchronized (lock) {
-            int targetId = lookupFrameNumber(targetFrame);
-            int sourceId = lookupFrameNumber(sourceFrame);
-            if (canTransformNoLock(targetId, sourceId, time)) {
+    public Future<Transform> requestTransform(final String targetFrame, final String sourceFrame, long time) {
+        final FutureTransform future = new FutureTransform();
+        synchronized (transformationFrameMapLock) {
+            if (canTransform(targetFrame, sourceFrame, time)) {
                 try {
                     future.set(lookupTransformNoLock(targetFrame, sourceFrame, time));
                 } catch (TransformerException ex) {
@@ -615,21 +631,39 @@ public class TransformerCoreDefault implements TransformerCore {
                 }
             }
             requests.add(new TransformRequest(targetFrame, sourceFrame, time, future));
+            return future;
         }
-        return future;
+    }
+
+    /**
+     * Method blocks until new transformation updates are available.
+     */
+    public void waitForTransformationUpdates(long timeout) throws InterruptedException {
+        synchronized (transformationFrameMapLock) {
+            transformationFrameMapLock.wait(timeout);
+        }
+    }
+
+    /**
+     * Method blocks until new transformation updates are available.
+     */
+    public void waitForTransformationUpdates() throws InterruptedException {
+        synchronized (transformationFrameMapLock) {
+            transformationFrameMapLock.wait();
+        }
     }
 
     private void checkRequests() {
         // go through all request and check if they can be answered
-        synchronized (lock) {
-            for(final TransformRequest request : new ArrayList<>(requests)) {
+        synchronized (transformationFrameMapLock) {
+            for (final TransformRequest request : new ArrayList<>(requests)) {
                 try {
-                    final Transform transform = lookupTransformNoLock(request.target_frame, request.source_frame, request.time);
                     // request can be answered. publish the transform through
                     // the future object and remove the request.
-                    request.future.set(transform);
+                    request.future.set(lookupTransformNoLock(request.target_frame, request.source_frame, request.time));
                     requests.remove(request);
                 } catch (TransformerException ex) {
+                    ExceptionPrinter.printHistory("Request:" + request.source_frame + " -> " + request.target_frame + " still not available", ex, LOGGER, LogLevel.DEBUG);
                     // expected, just proceed
                 }
             }
@@ -649,10 +683,14 @@ public class TransformerCoreDefault implements TransformerCore {
             return false;
         }
 
-        synchronized (lock) {
-            int targetId = lookupFrameNumber(targetFrame);
-            int sourceId = lookupFrameNumber(sourceFrame);
-            return canTransformNoLock(targetId, sourceId, time);
+        synchronized (transformationFrameMapLock) {
+            try {
+                int targetId = lookupFrameNumber(targetFrame);
+                int sourceId = lookupFrameNumber(sourceFrame);
+                return canTransformNoLock(targetId, sourceId, time);
+            } catch (NotAvailableException ex) {
+                return false;
+            }
         }
     }
 
@@ -687,7 +725,7 @@ public class TransformerCoreDefault implements TransformerCore {
 
     @Override
     public Set<String> getFrameStrings() {
-        synchronized (lock) {
+        synchronized (transformationFrameMapLock) {
             Set<String> vec = new HashSet<>();
             for (int counter = 1; counter < frameIdsReverse.size(); counter++) {
                 vec.add(frameIdsReverse.get(counter));
@@ -698,27 +736,31 @@ public class TransformerCoreDefault implements TransformerCore {
 
     @Override
     public boolean frameExists(String frameId) {
-        synchronized (lock) {
+        synchronized (transformationFrameMapLock) {
             return frameIds.containsKey(frameId);
         }
     }
 
     @Override
     public String getParent(String frameId, long time) throws TransformerException {
-        synchronized (lock) {
-            int frameNumber = lookupFrameNumber(frameId);
-            TransformCache frame = getFrame(frameNumber);
+        synchronized (transformationFrameMapLock) {
+            try {
+                int frameNumber = lookupFrameNumber(frameId);
+                TransformCache frame = getFrame(frameNumber);
 
-            if (!frame.isValid()) {
-                return "";
+                if (!frame.isValid()) {
+                    return "";
+                }
+
+                int parentId = frame.getParent(time);
+                if (parentId == 0) {
+                    return "";
+                }
+
+                return lookupFrameString(parentId);
+            } catch (NotAvailableException ex) {
+                throw new TransformerException("Could not resolfe parent transformation!", ex);
             }
-
-            int parentId = frame.getParent(time);
-            if (parentId == 0) {
-                return "";
-            }
-
-            return lookupFrameString(parentId);
         }
     }
 
@@ -726,7 +768,7 @@ public class TransformerCoreDefault implements TransformerCore {
     public String allFramesAsDot() {
         String mstream = "";
         mstream += "digraph G {\n";
-        synchronized (lock) {
+        synchronized (transformationFrameMapLock) {
 
             TransformInternal temp = new TransformInternal();
 
@@ -800,7 +842,7 @@ public class TransformerCoreDefault implements TransformerCore {
     @Override
     public String allFramesAsYAML() {
         String mstream = "";
-        synchronized (lock) {
+        synchronized (transformationFrameMapLock) {
 
             TransformInternal temp = new TransformInternal();
 
@@ -854,7 +896,7 @@ public class TransformerCoreDefault implements TransformerCore {
 
     @Override
     public String allFramesAsString() {
-        synchronized (lock) {
+        synchronized (transformationFrameMapLock) {
             return allFramesAsStringNoLock();
         }
     }
@@ -882,24 +924,22 @@ public class TransformerCoreDefault implements TransformerCore {
 
         TransformInternal temp = new TransformInternal();
         String mstring = "";
-
-        // /regular transforms
-        LOGGER.debug("frames size: " + frames.size());
-        for (int counter = 1; counter < frames.size(); counter++) {
-            TransformCache frame_ptr = getFrame(counter);
-            LOGGER.debug("got frame: " + frame_ptr);
-            if (!frame_ptr.isValid()) {
-                continue;
+        synchronized (transformationFrameMapLock) {
+            // /regular transforms
+            LOGGER.debug("frames size: " + frames.size());
+            for (int counter = 1; counter < frames.size(); counter++) {
+                TransformCache frame_ptr = getFrame(counter);
+                LOGGER.debug("got frame: " + frame_ptr);
+                if (!frame_ptr.isValid()) {
+                    continue;
+                }
+                int frame_id_num = 0;
+                if (frame_ptr.getData(0, temp)) {
+                    LOGGER.debug("got frame transform: " + temp);
+                    frame_id_num = temp.frame_id;
+                }
+                mstring += "Frame " + frameIdsReverse.get(counter) + " exists with parent " + frameIdsReverse.get(frame_id_num) + ".\n";
             }
-            int frame_id_num = 0;
-            if (frame_ptr.getData(0, temp)) {
-                LOGGER.debug("got frame transform: " + temp);
-                frame_id_num = temp.frame_id;
-            }
-
-            mstring += "Frame " + frameIdsReverse.get(counter)
-                    + " exists with parent "
-                    + frameIdsReverse.get(frame_id_num) + ".\n";
         }
         return mstring;
     }
