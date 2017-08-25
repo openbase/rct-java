@@ -15,11 +15,6 @@ import javax.media.j3d.Transform3D;
 import javax.vecmath.Matrix3d;
 import javax.vecmath.Quat4d;
 import javax.vecmath.Vector3d;
-import org.openbase.jul.exception.CouldNotPerformException;
-import org.openbase.jul.exception.NotAvailableException;
-import org.openbase.jul.exception.printer.ExceptionPrinter;
-import org.openbase.jul.exception.printer.LogLevel;
-import org.openbase.jul.schedule.SyncObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -142,7 +137,12 @@ public class TransformerCoreDefault implements TransformerCore {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TransformerCoreDefault.class);
 
-    private final SyncObject transformationFrameMapLock = new SyncObject("TransformationFrameMapLock");
+    private final Object transformationFrameMapLock = new Object() {
+        @Override
+        public String toString() {
+            return "TransformationFrameMapLock";
+        }
+    };
 
     private final Map<String, Integer> frameIds = new HashMap<>();
     private final List<TransformCache> frames = new LinkedList<>();
@@ -314,7 +314,7 @@ public class TransformerCoreDefault implements TransformerCore {
                 }
 
                 return lookupTransformNoLock(targetFrame, sourceFrame, time);
-            } catch (CouldNotPerformException ex) {
+            } catch (TransformerException ex) {
                 throw new TransformerException("Could not lookup transformation", ex);
             }
         }
@@ -579,10 +579,10 @@ public class TransformerCoreDefault implements TransformerCore {
         }
     }
 
-    private int lookupFrameNumber(String frameId) throws NotAvailableException {
+    private int lookupFrameNumber(String frameId) throws TransformerException {
         synchronized (transformationFrameMapLock) {
             if (!frameIds.containsKey(frameId)) {
-                throw new NotAvailableException("FrameId[" + frameId + "]");
+                throw new TransformerException("FrameId[" + frameId + "]");
             }
             return frameIds.get(frameId);
         }
@@ -599,7 +599,7 @@ public class TransformerCoreDefault implements TransformerCore {
 
         try {
             return lookupFrameNumber(frameId);
-        } catch (NotAvailableException ex) {
+        } catch (TransformerException ex) {
             throw new TransformerException("\"" + frameId + "\" passed to " + functionNameArg + " does not exist. ", ex);
         }
     }
@@ -663,7 +663,7 @@ public class TransformerCoreDefault implements TransformerCore {
                     request.future.set(lookupTransformNoLock(request.target_frame, request.source_frame, request.time));
                     requests.remove(request);
                 } catch (TransformerException ex) {
-                    ExceptionPrinter.printHistory("Request:" + request.source_frame + " -> " + request.target_frame + " still not available", ex, LOGGER, LogLevel.DEBUG);
+                    LOGGER.debug("Request:" + request.source_frame + " -> " + request.target_frame + " still not available");
                     // expected, just proceed
                 }
             }
@@ -688,7 +688,7 @@ public class TransformerCoreDefault implements TransformerCore {
                 int targetId = lookupFrameNumber(targetFrame);
                 int sourceId = lookupFrameNumber(sourceFrame);
                 return canTransformNoLock(targetId, sourceId, time);
-            } catch (NotAvailableException ex) {
+            } catch (TransformerException ex) {
                 return false;
             }
         }
@@ -758,7 +758,7 @@ public class TransformerCoreDefault implements TransformerCore {
                 }
 
                 return lookupFrameString(parentId);
-            } catch (NotAvailableException ex) {
+            } catch (TransformerException ex) {
                 throw new TransformerException("Could not resolfe parent transformation!", ex);
             }
         }
