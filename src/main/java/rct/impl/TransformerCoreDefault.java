@@ -627,7 +627,7 @@ public class TransformerCoreDefault implements TransformerCore {
                 try {
                     future.set(lookupTransformNoLock(targetFrame, sourceFrame, time));
                 } catch (TransformerException ex) {
-                    LOGGER.error("Transformation from [" + sourceFrame + "] to [" + targetFrame + "] failed even though can transform returned true", ex);
+                    LOGGER.warn("Transformation from [" + sourceFrame + "] to [" + targetFrame + "] failed!" + ex.getMessage());
                 }
             }
             requests.add(new TransformRequest(targetFrame, sourceFrame, time, future));
