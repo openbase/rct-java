@@ -400,7 +400,7 @@ public class TransformerCoreDefault implements TransformerCore {
             TransformCache cache = getFrame(frame);
 
             if (!cache.isValid()) {
-                break;
+                throw new TransformerException("Invalid cache when looking up transform from frame [" + lookupFrameString(sourceId) + "] to frame [" + lookupFrameString(targetId) + "]");
             }
 
             int parent = f.gather(cache, time);
