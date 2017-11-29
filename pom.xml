@@ -71,7 +71,7 @@
         <dependency>
             <groupId>rsb</groupId>
             <artifactId>rsb</artifactId>
-            <version>[0.15,0.16-SNAPSHOT)</version>
+            <version>[0.15,0.18-SNAPSHOT)</version>
             <exclusions>
                 <exclusion>
                     <groupId>com.google.protobuf</groupId>
