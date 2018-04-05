@@ -1,62 +1,48 @@
 package rct.impl.rsb;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import rct.Transform;
 import rct.TransformType;
 import rct.TransformerConfig;
 import rct.TransformerException;
 import rct.impl.TransformCommunicator;
 import rct.impl.TransformListener;
-import rsb.Event;
-import rsb.Factory;
-import rsb.Informer;
-import rsb.InitializeException;
-import rsb.Listener;
-import rsb.RSBException;
-import rsb.Scope;
+import rsb.*;
 import rsb.converter.DefaultConverterRepository;
+
+import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class TransformCommunicatorRSB implements TransformCommunicator {
 
+    public static final String RCT_SCOPE_TRANSFORM = "/rct/transform";
+    public static final String RCT_SCOPE_SYNC = "/rct/sync";
     private static final String RCT_SCOPE_SUFFIX_STATIC = "static";
     private static final String RCT_SCOPE_SUFFIX_DYNAMIC = "dynamic";
     private static final String RCT_SCOPE_SEPARATOR = "/";
-    public static final String RCT_SCOPE_TRANSFORM = "/rct/transform";
     public static final String RCT_SCOPE_TRANSFORM_STATIC = RCT_SCOPE_TRANSFORM + RCT_SCOPE_SEPARATOR + RCT_SCOPE_SUFFIX_STATIC;
     public static final String RCT_SCOPE_TRANSFORM_DYNAMIC = RCT_SCOPE_TRANSFORM + RCT_SCOPE_SEPARATOR + RCT_SCOPE_SUFFIX_DYNAMIC;
-    public static final String RCT_SCOPE_SYNC = "/rct/sync";
-
     private static final String USER_INFO_AUTHORITY = "authority";
-
-    private Listener rsbListenerTransform;
-    private Informer<Transform> rsbInformerTransform;
-    private Listener rsbListenerSync;
-    private Informer<Void> rsbInformerSync;
+    private static final Logger LOGGER = LoggerFactory.getLogger(TransformCommunicatorRSB.class);
     private final Set<TransformListener> listeners = new HashSet<>();
-
     private final Map<String, Transform> sendCacheDynamic = new HashMap<>();
     private final Map<String, Transform> sendCacheStatic = new HashMap<>();
     private final Object lock = new Object();
     private final ExecutorService executor = Executors.newCachedThreadPool();
     private final String name;
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(TransformCommunicatorRSB.class);
+    private Listener rsbListenerTransform;
+    private Informer<Transform> rsbInformerTransform;
+    private Listener rsbListenerSync;
+    private Informer<Void> rsbInformerSync;
 
     public TransformCommunicatorRSB(String name) {
         this.name = name;
     }
 
     @Override
-    public void init(TransformerConfig conf) throws TransformerException {
+    public void init(final TransformerConfig conf) throws TransformerException {
 
         LOGGER.debug("registering converter");
 
@@ -108,7 +94,7 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
     }
 
     @Override
-    public void sendTransform(Transform transform, TransformType type) throws TransformerException {
+    public void sendTransform(final Transform transform, final TransformType type) throws TransformerException {
         if (rsbInformerTransform == null || !rsbInformerTransform.isActive()) {
             throw new TransformerException("RSB interface is not initialized!");
         }
@@ -220,29 +206,31 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
 
     private void publishCache() {
         LOGGER.debug("Publishing cache from " + rsbInformerTransform.getId());
-        for (String key : sendCacheDynamic.keySet()) {
+        synchronized (lock) {
+            for (String key : sendCacheDynamic.keySet()) {
+                Event event = new Event();
+                event.setData(sendCacheDynamic.get(key));
+                event.getMetaData().setUserInfo(USER_INFO_AUTHORITY, sendCacheDynamic.get(key).getAuthority());
+                event.setScope(new Scope(RCT_SCOPE_TRANSFORM_DYNAMIC));
+                event.setType(Transform.class);
 
-            Event event = new Event();
-            event.setData(sendCacheDynamic.get(key));
-            event.getMetaData().setUserInfo(USER_INFO_AUTHORITY, sendCacheDynamic.get(key).getAuthority());
-            event.setScope(new Scope(RCT_SCOPE_TRANSFORM_DYNAMIC));
-            event.setType(Transform.class);
-            try {
-                rsbInformerTransform.publish(event);
-            } catch (RSBException ex) {
-                LOGGER.error("Can not publish cached dynamic transform " + sendCacheDynamic.get(key) + ". Reason: " + ex.getMessage(), ex);
+                try {
+                    rsbInformerTransform.publish(event);
+                } catch (RSBException ex) {
+                    LOGGER.error("Can not publish cached dynamic transform " + sendCacheDynamic.get(key) + ". Reason: " + ex.getMessage(), ex);
+                }
             }
-        }
-        for (String key : sendCacheStatic.keySet()) {
-            Event event = new Event();
-            event.setData(sendCacheStatic.get(key));
-            event.getMetaData().setUserInfo(USER_INFO_AUTHORITY, sendCacheStatic.get(key).getAuthority());
-            event.setScope(new Scope(RCT_SCOPE_TRANSFORM_STATIC));
-            event.setType(Transform.class);
-            try {
-                rsbInformerTransform.publish(event);
-            } catch (RSBException ex) {
-                LOGGER.error("Can not publish cached static transform " + sendCacheDynamic.get(key) + ". Reason: " + ex.getMessage(), ex);
+            for (String key : sendCacheStatic.keySet()) {
+                Event event = new Event();
+                event.setData(sendCacheStatic.get(key));
+                event.getMetaData().setUserInfo(USER_INFO_AUTHORITY, sendCacheStatic.get(key).getAuthority());
+                event.setScope(new Scope(RCT_SCOPE_TRANSFORM_STATIC));
+                event.setType(Transform.class);
+                try {
+                    rsbInformerTransform.publish(event);
+                } catch (RSBException ex) {
+                    LOGGER.error("Can not publish cached static transform " + sendCacheDynamic.get(key) + ". Reason: " + ex.getMessage(), ex);
+                }
             }
         }
     }
