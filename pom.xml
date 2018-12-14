@@ -49,6 +49,7 @@
     
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	    <dependency.openbase.type.version>1.0-SNAPSHOT</dependency.openbase.type.version>
         <skipTests>false</skipTests>
     </properties>
     
@@ -71,7 +72,7 @@
         <dependency>
             <groupId>rsb</groupId>
             <artifactId>rsb</artifactId>
-            <version>[0.15,0.18-SNAPSHOT)</version>
+            <version>[0.17,0.19-SNAPSHOT)</version>
             <exclusions>
                 <exclusion>
                     <groupId>com.google.protobuf</groupId>
@@ -80,20 +81,10 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>rsb</groupId>
-            <artifactId>rst</artifactId>
-            <version>[0.15,0.18-SNAPSHOT)</version>
-        </dependency>
-<!--        <dependency>
             <groupId>org.openbase</groupId>
-            <artifactId>jul.exception</artifactId>
-            <version>${dependency.jul.version}</version>
+            <artifactId>type</artifactId>
+            <version>${dependency.openbase.type.version}</version>
         </dependency>
-         <dependency>
-            <groupId>org.openbase</groupId>
-            <artifactId>jul.schedule</artifactId>
-            <version>${dependency.jul.version}</version>
-        </dependency>-->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
