@@ -22,13 +22,9 @@ package org.openbase.rct;
  * #L%
  */
 
-public class TransformerException extends Exception {
+import org.openbase.jul.exception.CouldNotPerformException;
 
-    private static final long serialVersionUID = -4649474035789067845L;
-
-    public TransformerException() {
-        super();
-    }
+public class TransformerException extends CouldNotPerformException {
 
     public TransformerException(String msg) {
         super(msg);
