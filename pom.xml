@@ -94,15 +94,4 @@
         <url>https://github.com/openbase/rct-java.git</url>
     </scm>
 
-    <repositories>
-        <repository>
-            <id>citec-releases</id>
-            <name>CITEC Maven Repository Server</name>
-            <url>https://mvn.cit-ec.de/nexus/content/repositories/releases/</url>
-            <layout>default</layout>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-        </repository>
-    </repositories>
 </project>
