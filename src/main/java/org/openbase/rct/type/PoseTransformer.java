@@ -2,7 +2,7 @@ package org.openbase.rct.type;
 
 /*
  * #%L
- * JUL Extension RCT
+ * RCT
  * %%
  * Copyright (C) 2015 - 2018 openbase.org
  * %%
