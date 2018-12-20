@@ -66,7 +66,7 @@
         </dependency>
         <dependency>
             <groupId>org.openbase</groupId>
-            <artifactId>jul.extension.type</artifactId>
+            <artifactId>jul.extension.type.processing</artifactId>
             <version>${dependency.openbase.jul.version}</version>
         </dependency>
         <dependency>
