@@ -54,11 +54,11 @@ public class TransformerCoreDefault implements TransformerCore {
 
     private interface TransformAccum {
 
-        public int gather(TransformCache cache, long time);
+        int gather(TransformCache cache, long time);
 
-        public void accum(boolean source);
+        void accum(boolean source);
 
-        public void finalize(WalkEnding end, long time);
+        void finalize(WalkEnding end, long time);
     }
 
     private class TransformAccumDummy implements TransformAccum {
@@ -659,6 +659,7 @@ public class TransformerCoreDefault implements TransformerCore {
 
     /**
      * Method blocks until new transformation updates are available.
+     * @throws InterruptedException is thrown if the current thread is externally interrupted.
      */
     public void waitForTransformationUpdates(long timeout) throws InterruptedException {
         synchronized (transformationFrameMapLock) {
@@ -668,6 +669,7 @@ public class TransformerCoreDefault implements TransformerCore {
 
     /**
      * Method blocks until new transformation updates are available.
+     * @throws InterruptedException is thrown if the current thread is externally interrupted.
      */
     public void waitForTransformationUpdates() throws InterruptedException {
         synchronized (transformationFrameMapLock) {

@@ -52,7 +52,7 @@ public interface TransformerCore extends TransformListener {
      * @param sourceFrame The frame where the data originated
      * @param time The time at which the value of the transform is desired. (0 will get the latest)
      * @return The transform between the frames
-     * @throws TransformerException
+     * @throws TransformerException is thrown if the transformation is not available.
      *
      */
     Transform lookupTransform(String targetFrame, String sourceFrame, long time) throws TransformerException;
@@ -66,7 +66,7 @@ public interface TransformerCore extends TransformListener {
      * @param sourceTime The time at which the sourceFrame should be evaluated. (0 will get the latest)
      * @param fixedFrame The frame in which to assume the transform is ant in time.
      * @return The transform between the frames
-     * @throws TransformerException
+     * @throws TransformerException is thrown if the transformation is not available.
      *
      */
     Transform lookupTransform(String targetFrame, long targetTime, String sourceFrame, long sourceTime, String fixedFrame) throws TransformerException;
@@ -78,7 +78,6 @@ public interface TransformerCore extends TransformListener {
      * @param sourceFrame The frame where the data originated
      * @param time The time at which the value of the transform is desired. (0 will get the latest)
      * @return A future object representing the request status and transform between the frames
-     * @throws TransformerException
      *
      */
     Future<Transform> requestTransform(String targetFrame, String sourceFrame, long time);
@@ -99,11 +98,11 @@ public interface TransformerCore extends TransformListener {
      * @param targetFrame The frame into which to transform
      * @param targetTime The time into which to transform
      * @param sourceFrame The frame from which to transform
-     * @param sourcTime The time from which to transform
+     * @param sourceTime The time from which to transform
      * @param fixedFrame The frame in which to treat the transform as ant in time
      * @return True if the transform is possible, false otherwise
      */
-    boolean canTransform(String targetFrame, long targetTime, String sourceFrame, long sourcTime, String fixedFrame);
+    boolean canTransform(String targetFrame, long targetTime, String sourceFrame, long sourceTime, String fixedFrame);
 
     /**
      * A way to get a set of available frame ids
@@ -113,15 +112,15 @@ public interface TransformerCore extends TransformListener {
     Set<String> getFrameStrings();
 
     /**
-     * @brief Check if a frame exists in the tree
+     * Check if a frame exists in the tree
      * @param frameId The frame id in question
      * @return if the frame with the id exists
      */
     boolean frameExists(String frameId);
 
     /**
-     * @param time
-     * @brief Fill the parent of a frame.
+     * Returns the parent of a frame.
+     * @param time the timestamp used for the lookup.
      * @param frameId The frame id of the frame in question
      * @throws TransformerException
      * @return the id of the parent

@@ -210,8 +210,8 @@ public class Transform {
 
 	/**
 	 * Setter for the timestamp of the moment this object was created.
-	 * 
-	 * @return The timestamp in milliseconds
+	 * @param time the time to set.
+	 *
 	 */
 	public void setTime(long time) {
 		this.time = time;

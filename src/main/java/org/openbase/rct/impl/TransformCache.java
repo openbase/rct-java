@@ -50,7 +50,7 @@ public interface TransformCache {
     boolean insertData(TransformInternal newData);
 
     /**
-     * @brief Clear the list of stored values
+     * Clear the list of stored values
      */
     void clearList();
 
@@ -72,17 +72,17 @@ public interface TransformCache {
 
     // / Debugging information methods
     /**
-     * @return * @brief Get the length of the stored list
+     * @return Get the length of the stored list
      */
     int getListLength();
 
     /**
-     * @return * @brief Get the latest timestamp cached
+     * @return Get the latest timestamp cached
      */
     long getLatestTimestamp();
 
     /**
-     * @return * @brief Get the oldest timestamp cached
+     * @return Get the oldest timestamp cached
      */
     long getOldestTimestamp();
 

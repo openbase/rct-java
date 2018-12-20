@@ -258,7 +258,7 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
     }
 
     /**
-     * @{@inheritDoc}
+     * {@inheritDoc}
      */
     @Override
     public void shutdown() {

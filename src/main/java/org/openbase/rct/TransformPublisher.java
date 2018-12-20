@@ -43,10 +43,8 @@ public class TransformPublisher {
      * Creates a new transformer. Attention: This should not be called by the
      * user, use {@link TransformerFactory} in order to create a transformer.
      *
-     * @param comm
-     * The communicator implementation
-     * @param conf
-     * The configuration
+     * @param comm The communicator implementation
+     * @param conf The configuration
      */
     public TransformPublisher(TransformCommunicator comm, TransformerConfig conf) {
         this.conf = conf;
@@ -54,24 +52,23 @@ public class TransformPublisher {
     }
 
     /**
-     * @brief Add transform information to the rct data structure
-     * @param transform  The transform to store
-     * @param isStatic Record this transform as a static transform. It will be good across all time. (This cannot be changed after the first call.) 
+     * Add transform information to the rct data structure.
+     * @param transform  The transform to store.
+     * @param transformType Defines if this transformation is static or dynamically updated over time. (This cannot be changed after the first call.)
      * @throws TransformerException
      */
-    public void sendTransform(Transform transform, TransformType type)
-            throws TransformerException {
-        comm.sendTransform(transform, type);
+    public void sendTransform(Transform transform, TransformType transformType) throws TransformerException {
+        comm.sendTransform(transform, transformType);
     }
 
     /**
-     * @brief Add transform information to the rct data structure
-     * @param transform The transform to store
-     * @param is_static Record this transform as a static transform. It will be good across all time. (This cannot be changed after the first call.)
+     * Add transform information to the rct data structure.
+     * @param transforms The transformations to store.
+     * @param transformType Defines if this transformation is static or dynamically updated over time. (This cannot be changed after the first call.)
      * @throws TransformerException
      */
-    public void sendTransform(Set<Transform> transforms, TransformType type) throws TransformerException {
-        comm.sendTransform(transforms, type);
+    public void sendTransform(Set<Transform> transforms, TransformType transformType) throws TransformerException {
+        comm.sendTransform(transforms, transformType);
     }
 
     public TransformerConfig getConfig() {
