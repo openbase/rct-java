@@ -31,13 +31,13 @@ deploy:
   - provider: script
     script: .travis/deploy.sh
     on:
-        repo: openbase/rct
+        repo: openbase/rct-java
         branch: master
         jdk: oraclejdk8
   - provider: script
     script: .travis/deploy.sh
     on:
-        repo: openbase/rct
+        repo: openbase/rct-java
         tags: true
         jdk: oraclejdk8
 
