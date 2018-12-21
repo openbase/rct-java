@@ -24,7 +24,7 @@ package org.openbase.rct.impl;
 
 public interface TransformCache {
 
-    public class TimeAndFrameID {
+    class TimeAndFrameID {
 
         public TimeAndFrameID(long time, int frameID) {
             this.time = time;

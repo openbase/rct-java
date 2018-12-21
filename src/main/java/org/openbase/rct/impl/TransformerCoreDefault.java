@@ -50,7 +50,7 @@ public class TransformerCoreDefault implements TransformerCore {
     private enum WalkEnding {
 
         Identity, TargetParentOfSource, SourceParentOfTarget, FullPath,
-    };
+    }
 
     private interface TransformAccum {
 
@@ -75,7 +75,7 @@ public class TransformerCoreDefault implements TransformerCore {
         @Override
         public void finalize(WalkEnding end, long time) {
         }
-    };
+    }
 
     private class TransformAccumImpl implements TransformAccum {
 

@@ -31,12 +31,12 @@ import org.openbase.rct.TransformerException;
 
 public interface TransformCommunicator {
 
-    public void init(TransformerConfig conf) throws TransformerException;
+    void init(TransformerConfig conf) throws TransformerException;
 
     /**
      * Shutdown the transform communicator
      */
-    public void shutdown();
+    void shutdown();
 
     /**
      *
@@ -44,7 +44,7 @@ public interface TransformCommunicator {
      * @param type
      * @throws TransformerException
      */
-    public void sendTransform(Transform transform, TransformType type) throws TransformerException;
+    void sendTransform(Transform transform, TransformType type) throws TransformerException;
 
     /**
      *
@@ -52,13 +52,13 @@ public interface TransformCommunicator {
      * @param type
      * @throws TransformerException
      */
-    public void sendTransform(Set<Transform> transforms, TransformType type) throws TransformerException;
+    void sendTransform(Set<Transform> transforms, TransformType type) throws TransformerException;
 
-    public void addTransformListener(TransformListener listener);
+    void addTransformListener(TransformListener listener);
 
-    public void addTransformListener(Set<TransformListener> listeners);
+    void addTransformListener(Set<TransformListener> listeners);
 
-    public void removeTransformListener(TransformListener listener);
+    void removeTransformListener(TransformListener listener);
 
-    public String getAuthorityID();
+    String getAuthorityID();
 }

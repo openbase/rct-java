@@ -26,7 +26,7 @@ public class TransformerConfig {
 
     public enum CommunicatorType {
         AUTO, RSB, ROS
-    };
+    }
 
     private long cacheTime = 30000;
     private CommunicatorType commType = CommunicatorType.AUTO;

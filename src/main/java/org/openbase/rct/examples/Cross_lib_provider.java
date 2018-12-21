@@ -180,14 +180,14 @@ public class Cross_lib_provider {
             Vector4d re_transformed_point = transform_now(target, base, transformed_point);
             System.out.println("[" + transformed_point + "]  -->  " + "[" + re_transformed_point + "]");
 
-            System.out.println("");
+            System.out.println();
         }
         System.exit(0);
     }
 
     public static void usage() {
         System.out.println("ERROR: Please provide task argument!");
-        System.out.println("");
+        System.out.println();
         System.out.println("Usage: program [TASK_ARGUMENT] (where TASK_ARGUMENT is either 'provide' or 'test')");
     }
 
