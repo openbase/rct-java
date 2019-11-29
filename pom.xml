@@ -230,7 +230,6 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <target.java.version>1.8</target.java.version>
         <source.java.version>1.8</source.java.version>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	    <dependency.openbase.jul.version>2.0-SNAPSHOT</dependency.openbase.jul.version>
         <skipTests>false</skipTests>
     </properties>
