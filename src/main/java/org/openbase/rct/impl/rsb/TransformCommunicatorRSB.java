@@ -28,6 +28,7 @@ import org.openbase.rct.TransformerConfig;
 import org.openbase.rct.TransformerException;
 import org.openbase.rct.impl.TransformCommunicator;
 import org.openbase.rct.impl.TransformListener;
+import org.openbase.type.geometry.FrameTransformCollectionType.FrameTransformCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rsb.*;
@@ -137,10 +138,18 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
 
             switch (type) {
                 case STATIC:
+                    if(transform.equalsWithoutTime(sendCacheStatic.get(cacheKey))) {
+                        // we are done if transformation is already known
+                        return;
+                    }
                     sendCacheStatic.put(cacheKey, transform);
                     event.setScope(new Scope(RCT_SCOPE_TRANSFORM_STATIC));
                     break;
                 case DYNAMIC:
+                    if(transform.equals(sendCacheDynamic.get(cacheKey))) {
+                        // we are done if transformation is already known
+                        return;
+                    }
                     sendCacheDynamic.put(cacheKey, transform);
                     event.setScope(new Scope(RCT_SCOPE_TRANSFORM_DYNAMIC));
                     break;
@@ -241,6 +250,16 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
                 } catch (RSBException ex) {
                     LOGGER.error("Can not publish cached dynamic transform " + sendCacheDynamic.get(key) + ". Reason: " + ex.getMessage(), ex);
                 }
+
+                // apply workaround to avoid sending to many events at once,
+                // because otherwise spread is killing some sessions.
+                // todo: implement more efficient by sending a collection instead of all transformations one by one.
+                try {
+                    Thread.sleep(50);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    return;
+                }
             }
             for (String key : sendCacheStatic.keySet()) {
                 Event event = new Event();
@@ -252,6 +271,16 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
                     rsbInformerTransform.publish(event);
                 } catch (RSBException ex) {
                     LOGGER.error("Can not publish cached static transform " + sendCacheDynamic.get(key) + ". Reason: " + ex.getMessage(), ex);
+                }
+
+                // apply workaround to avoid sending to many events at once,
+                // because otherwise spread is killing some sessions.
+                // todo: implement more efficient by sending a collection instead of all transformations one by one.
+                try {
+                    Thread.sleep(50);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    return;
                 }
             }
         }
