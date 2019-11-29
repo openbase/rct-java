@@ -330,9 +330,7 @@ public class TransformerCoreDefault implements TransformerCore {
                         newTime = time;
                     }
 
-                    Transform3D t = new Transform3D();
-                    Transform identity = new Transform(t, targetFrame, sourceFrame, newTime);
-                    return identity;
+                    return new Transform(new Transform3D(), targetFrame, sourceFrame, newTime);
                 }
 
                 return lookupTransformNoLock(targetFrame, sourceFrame, time);
@@ -348,16 +346,15 @@ public class TransformerCoreDefault implements TransformerCore {
         int targetId = validateFrameId("lookupTransform argument target_frame", targetFrame);
         int sourceId = validateFrameId("lookupTransform argument source_frame", sourceFrame);
 
-        TransformAccumImpl accum = new TransformAccumImpl();
+        final TransformAccumImpl accum = new TransformAccumImpl();
         try {
             walkToTopParent(accum, time, targetId, sourceId);
         } catch (TransformerException ex) {
             throw new TransformerException("No matching transform found", ex);
         }
 
-        Transform3D t3d = new Transform3D(accum.resultQuat, accum.resultVec, 1.0);
-        Transform outputTransform = new Transform(t3d, targetFrame, sourceFrame, accum.time);
-        return outputTransform;
+        final Transform3D t3d = new Transform3D(accum.resultQuat, accum.resultVec, 1.0);
+        return new Transform(t3d, targetFrame, sourceFrame, accum.time);
     }
 
     private void walkToTopParent(TransformAccum f, long time, int targetId, int sourceId) throws TransformerException {
