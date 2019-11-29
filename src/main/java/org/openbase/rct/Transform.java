@@ -22,6 +22,9 @@ package org.openbase.rct;
  * #L%
  */
 
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
+
 import javax.media.j3d.Transform3D;
 import javax.vecmath.Matrix3d;
 import javax.vecmath.Matrix4d;
@@ -248,5 +251,45 @@ public class Transform {
 
 		return "Transform[parent:" + frameParent + "; child:" + frameChild
 				+ "; time:" + time + "; transform:" + tStr + "]";
+	}
+
+	public boolean equalsWithoutTime(Object obj) {
+		if (obj == null) { return false; }
+		if (obj == this) { return true; }
+		if (obj.getClass() != getClass()) {
+			return false;
+		}
+		Transform rhs = (Transform) obj;
+		return new EqualsBuilder().
+				append(frameChild, rhs.frameChild).
+				append(frameParent, rhs.frameParent).
+				append(transform, rhs.transform).
+				isEquals();
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null) { return false; }
+		if (obj == this) { return true; }
+		if (obj.getClass() != getClass()) {
+			return false;
+		}
+		Transform rhs = (Transform) obj;
+		return new EqualsBuilder().
+				append(frameChild, rhs.frameChild).
+				append(frameParent, rhs.frameParent).
+				append(time, rhs.time).
+				append(transform, rhs.transform).
+				isEquals();
+	}
+
+	@Override
+	public int hashCode() {
+		return new HashCodeBuilder(13, 53).
+				append(frameChild).
+				append(frameParent).
+				append(time).
+				append(transform).
+				toHashCode();
 	}
 }
