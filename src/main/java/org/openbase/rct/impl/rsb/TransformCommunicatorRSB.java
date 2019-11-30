@@ -22,16 +22,24 @@ package org.openbase.rct.impl.rsb;
  * #L%
  */
 
+import org.openbase.jul.exception.CouldNotPerformException;
+import org.openbase.jul.exception.NotAvailableException;
+import org.openbase.jul.exception.printer.ExceptionPrinter;
+import org.openbase.jul.extension.rsb.com.RSBFactoryImpl;
+import org.openbase.jul.extension.rsb.com.RSBSharedConnectionConfig;
+import org.openbase.jul.extension.rsb.iface.RSBInformer;
+import org.openbase.jul.extension.rsb.iface.RSBListener;
+import org.openbase.jul.schedule.WatchDog;
 import org.openbase.rct.Transform;
 import org.openbase.rct.TransformType;
 import org.openbase.rct.TransformerConfig;
 import org.openbase.rct.TransformerException;
 import org.openbase.rct.impl.TransformCommunicator;
 import org.openbase.rct.impl.TransformListener;
-import org.openbase.type.geometry.FrameTransformCollectionType.FrameTransformCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rsb.*;
+import rsb.config.ParticipantConfig;
 import rsb.converter.DefaultConverterRepository;
 
 import java.util.*;
@@ -55,10 +63,21 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
     private final Object lock = new Object();
     private final ExecutorService executor = Executors.newCachedThreadPool();
     private final String name;
-    private Listener rsbListenerTransform;
-    private Informer<Transform> rsbInformerTransform;
-    private Listener rsbListenerSync;
-    private Informer<Void> rsbInformerSync;
+
+    private RSBInformer<Transform> rsbInformerTransform;
+    private RSBInformer<Void> rsbInformerSync;
+    private RSBListener rsbListenerTransform;
+    private RSBListener rsbListenerSync;
+
+    private WatchDog rsbInformerTransformWatchDog;
+    private WatchDog rsbInformerSyncWatchDog;
+    private WatchDog rsbListenerTransformWatchDog;
+    private WatchDog rsbListenerSyncWatchDog;
+
+    static {
+        // Register converter for the FrameTransform type.
+        DefaultConverterRepository.getDefaultConverterRepository().addConverter(new TransformConverter());
+    }
 
     public TransformCommunicatorRSB(String name) {
         this.name = name;
@@ -66,103 +85,114 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
 
     @Override
     public void init(final TransformerConfig conf) throws TransformerException {
-
-        LOGGER.debug("registering converter");
-
-        // Register converter for the FrameTransform type.
-        final TransformConverter converter = new TransformConverter();
-        DefaultConverterRepository.getDefaultConverterRepository().addConverter(converter);
-
         try {
-            rsbListenerTransform = Factory.getInstance().createListener(RCT_SCOPE_TRANSFORM);
-            rsbListenerSync = Factory.getInstance().createListener(RCT_SCOPE_SYNC);
-            rsbInformerTransform = Factory.getInstance().createInformer(RCT_SCOPE_TRANSFORM);
-            rsbInformerSync = Factory.getInstance().createInformer(RCT_SCOPE_SYNC);
-            rsbListenerTransform.activate();
-            rsbListenerSync.activate();
-            rsbInformerTransform.activate();
-            rsbInformerSync.activate();
 
-        } catch (InitializeException ex) {
-            throw new TransformerException("Can not initialize rsb communicator. Reason: " + ex.getMessage(), ex);
-        } catch (RSBException ex) {
-            throw new TransformerException("Can not initialize rsb communicator. Reason: " + ex.getMessage(), ex);
-        }
+            LOGGER.debug("registering converter");
 
-        try {
-            rsbListenerTransform.addHandler(this::transformCallback, true);
-            rsbListenerSync.addHandler(this::syncCallback, true);
+            final ParticipantConfig participantConfig = RSBSharedConnectionConfig.getParticipantConfig();
+
+            this.rsbInformerTransform = RSBFactoryImpl.getInstance().createSynchronizedInformer(RCT_SCOPE_TRANSFORM, Transform.class, participantConfig);
+            this.rsbInformerSync = RSBFactoryImpl.getInstance().createSynchronizedInformer(RCT_SCOPE_SYNC, Void.class, participantConfig);
+            this.rsbListenerTransform = RSBFactoryImpl.getInstance().createSynchronizedListener(RCT_SCOPE_TRANSFORM, participantConfig);
+            this.rsbListenerSync = RSBFactoryImpl.getInstance().createSynchronizedListener(RCT_SCOPE_SYNC, participantConfig);
+
+            this.rsbInformerTransformWatchDog = new WatchDog(rsbInformerTransform, "RSBInformerTransform");
+            this.rsbInformerSyncWatchDog = new WatchDog(rsbInformerSync, "RSBInformerSync");
+            this.rsbListenerTransformWatchDog = new WatchDog(rsbListenerTransform, "RSBListenerTransform");
+            this.rsbListenerSyncWatchDog = new WatchDog(rsbListenerSync, "RSBListenerSync");
+
+            this.rsbListenerTransform.addHandler(this::transformCallback, true);
+            this.rsbListenerSync.addHandler(this::syncCallback, true);
+
+            this.rsbInformerTransformWatchDog.activate();
+            this.rsbInformerSyncWatchDog.activate();
+            this.rsbListenerTransformWatchDog.activate();
+            this.rsbListenerSyncWatchDog.activate();
+
+            this.rsbInformerTransformWatchDog.waitForServiceActivation();
+            this.rsbInformerSyncWatchDog.waitForServiceActivation();
+            this.rsbListenerTransformWatchDog.waitForServiceActivation();
+            this.rsbListenerSyncWatchDog.waitForServiceActivation();
+
+            this.requestSync();
+
         } catch (InterruptedException ex) {
-            throw new TransformerException("Can not initialize rsb communicator. Reason: " + ex.getMessage(), ex);
+            Thread.currentThread().interrupt();
+            return;
+        } catch (CouldNotPerformException ex) {
+            throw new TransformerException("Can not initialize rsb communicator.", ex);
         }
-
-        requestSync();
     }
 
     public void requestSync() throws TransformerException {
-        if (rsbInformerSync == null || !rsbInformerSync.isActive()) {
-            throw new TransformerException("Rsb communicator is not initialized.");
-        }
-
-        LOGGER.debug("Sending sync request trigger from id " + rsbInformerSync.getId());
-
-        // trigger other instances to send transforms
-        Event ev = new Event(rsbInformerSync.getScope(), Void.class, null);
         try {
+            if (rsbInformerSync == null || !rsbInformerSync.isActive()) {
+                throw new TransformerException("Rsb communicator is not initialized.");
+            }
+
+            LOGGER.debug("Sending sync request trigger from id " + rsbInformerSync.getId());
+
+            // trigger other instances to send transforms
+            Event ev = new Event(rsbInformerSync.getScope(), Void.class, null);
             rsbInformerSync.publish(ev);
-        } catch (RSBException ex) {
-            throw new TransformerException("Can not trigger to send transforms. Reason: "
-                    + ex.getMessage(), ex);
+        } catch (CouldNotPerformException ex) {
+            throw new TransformerException("Can not send transforms!", ex);
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+            return;
         }
     }
 
     @Override
     public void sendTransform(final Transform transform, final TransformType type) throws TransformerException {
-        if (rsbInformerTransform == null || !rsbInformerTransform.isActive()) {
-            throw new TransformerException("RSB interface is not initialized!");
-        }
-
-        String cacheKey = transform.getFrameParent() + transform.getFrameChild();
-
-        LOGGER.debug("Publishing transform from " + rsbInformerTransform.getId());
-
-        synchronized (lock) {
-            Event event = new Event();
-            event.setData(transform);
-            event.setType(Transform.class);
-            if (transform.getAuthority() == null || transform.getAuthority().equals("")) {
-                transform.setAuthority(name);
+        try {
+            if (rsbInformerTransform == null || !rsbInformerTransform.isActive()) {
+                throw new TransformerException("RSB interface is not initialized!");
             }
 
-            event.getMetaData().setUserInfo(USER_INFO_AUTHORITY, transform.getAuthority());
+            String cacheKey = transform.getFrameParent() + transform.getFrameChild();
 
-            switch (type) {
-                case STATIC:
-                    if(transform.equalsWithoutTime(sendCacheStatic.get(cacheKey))) {
-                        // we are done if transformation is already known
-                        return;
-                    }
-                    sendCacheStatic.put(cacheKey, transform);
-                    event.setScope(new Scope(RCT_SCOPE_TRANSFORM_STATIC));
-                    break;
-                case DYNAMIC:
-                    if(transform.equals(sendCacheDynamic.get(cacheKey))) {
-                        // we are done if transformation is already known
-                        return;
-                    }
-                    sendCacheDynamic.put(cacheKey, transform);
-                    event.setScope(new Scope(RCT_SCOPE_TRANSFORM_DYNAMIC));
-                    break;
-                default:
-                    throw new TransformerException("Unknown TransformType: " + type.name());
-            }
+            LOGGER.debug("Publishing transform from " + rsbInformerTransform.getId());
 
-            try {
+            synchronized (lock) {
+                Event event = new Event(Transform.class);
+                event.setData(transform);
+
+
+                if (transform.getAuthority() == null || transform.getAuthority().equals("")) {
+                    transform.setAuthority(name);
+                }
+
+                event.getMetaData().setUserInfo(USER_INFO_AUTHORITY, transform.getAuthority());
+
+                switch (type) {
+                    case STATIC:
+                        if (transform.equalsWithoutTime(sendCacheStatic.get(cacheKey))) {
+                            // we are done if transformation is already known
+                            return;
+                        }
+                        sendCacheStatic.put(cacheKey, transform);
+                        event.setScope(new Scope(RCT_SCOPE_TRANSFORM_STATIC));
+                        break;
+                    case DYNAMIC:
+                        if (transform.equals(sendCacheDynamic.get(cacheKey))) {
+                            // we are done if transformation is already known
+                            return;
+                        }
+                        sendCacheDynamic.put(cacheKey, transform);
+                        event.setScope(new Scope(RCT_SCOPE_TRANSFORM_DYNAMIC));
+                        break;
+                    default:
+                        throw new TransformerException("Unknown TransformType: " + type.name());
+                }
+
                 rsbInformerTransform.publish(event);
-            } catch (RSBException ex) {
-                throw new TransformerException("Can not send transform: "
-                        + transform + ". Reason: " + ex.getMessage(), ex);
             }
+        } catch (CouldNotPerformException ex) {
+            throw new TransformerException("Can not send transform: " + transform, ex);
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+            return;
         }
     }
 
@@ -201,13 +231,19 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
     }
 
     private void transformCallback(Event event) {
+
         if (event.getType() != Transform.class) {
             LOGGER.warn("Received non-rct type on rct scope.");
             return;
         }
-        if (event.getId().getParticipantId().equals(rsbInformerTransform.getId())) {
-            LOGGER.trace("Received transform from myself. Ignore. (id " + event.getId().getParticipantId() + ")");
-            return;
+
+        try {
+            if (event.getId().getParticipantId().equals(rsbInformerTransform.getId())) {
+                LOGGER.trace("Received transform from myself. Ignore. (id " + event.getId().getParticipantId() + ")");
+                return;
+            }
+        } catch (NotAvailableException e) {
+            // continue if id could not be validated...
         }
 
         String authority = event.getMetaData().getUserInfo(USER_INFO_AUTHORITY);
@@ -227,62 +263,76 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
     }
 
     private void syncCallback(Event event) {
-        if (event.getId().getParticipantId().equals(rsbInformerSync.getId())) {
-            LOGGER.trace("Received sync request from myself. Ignore. (id " + event.getId().getParticipantId() + ")");
-            return;
+
+        try {
+            if (event.getId().getParticipantId().equals(rsbInformerSync.getId())) {
+                LOGGER.trace("Received sync request from myself. Ignore. (id " + event.getId().getParticipantId() + ")");
+                return;
+            }
+        } catch (NotAvailableException e) {
+            // continue if id could not be validated...
         }
+
         // concurrently publish currently known transform cache
         executor.execute(this::publishCache);
     }
 
     private void publishCache() {
-        LOGGER.debug("Publishing cache from " + rsbInformerTransform.getId());
-        synchronized (lock) {
-            for (String key : sendCacheDynamic.keySet()) {
-                Event event = new Event();
-                event.setData(sendCacheDynamic.get(key));
-                event.getMetaData().setUserInfo(USER_INFO_AUTHORITY, sendCacheDynamic.get(key).getAuthority());
-                event.setScope(new Scope(RCT_SCOPE_TRANSFORM_DYNAMIC));
-                event.setType(Transform.class);
 
-                try {
-                    rsbInformerTransform.publish(event);
-                } catch (RSBException ex) {
-                    LOGGER.error("Can not publish cached dynamic transform " + sendCacheDynamic.get(key) + ". Reason: " + ex.getMessage(), ex);
+        try {
+            LOGGER.debug("Publishing cache from " + rsbInformerTransform.getId());
+            synchronized (lock) {
+                for (String key : sendCacheDynamic.keySet()) {
+                    Event event = new Event(Transform.class);
+                    event.setData(sendCacheDynamic.get(key));
+                    event.getMetaData().setUserInfo(USER_INFO_AUTHORITY, sendCacheDynamic.get(key).getAuthority());
+                    event.setScope(new Scope(RCT_SCOPE_TRANSFORM_DYNAMIC));
+                    event.setType(Transform.class);
+
+                    try {
+                        rsbInformerTransform.publish(event);
+                    } catch (CouldNotPerformException ex) {
+                        throw new CouldNotPerformException("Can not publish cached dynamic transform " + sendCacheDynamic.get(key) + ".", ex);
+                    }
+
+                    // apply workaround to avoid sending to many events at once,
+                    // because otherwise spread is killing some sessions.
+                    // todo: implement more efficient by sending a collection instead of all transformations one by one.
+                    try {
+                        Thread.sleep(50);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        return;
+                    }
                 }
+                for (String key : sendCacheStatic.keySet()) {
+                    Event event = new Event(Transform.class);
+                    event.setData(sendCacheStatic.get(key));
+                    event.getMetaData().setUserInfo(USER_INFO_AUTHORITY, sendCacheStatic.get(key).getAuthority());
+                    event.setScope(new Scope(RCT_SCOPE_TRANSFORM_STATIC));
+                    event.setType(Transform.class);
+                    try {
+                        rsbInformerTransform.publish(event);
+                    } catch (CouldNotPerformException ex) {
+                        throw new CouldNotPerformException("Can not publish cached static transform " + sendCacheDynamic.get(key) + ".", ex);
+                    }
 
-                // apply workaround to avoid sending to many events at once,
-                // because otherwise spread is killing some sessions.
-                // todo: implement more efficient by sending a collection instead of all transformations one by one.
-                try {
-                    Thread.sleep(50);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    return;
+                    // apply workaround to avoid sending to many events at once,
+                    // because otherwise spread is killing some sessions.
+                    // todo: implement more efficient by sending a collection instead of all transformations one by one.
+                    try {
+                        Thread.sleep(50);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        return;
+                    }
                 }
             }
-            for (String key : sendCacheStatic.keySet()) {
-                Event event = new Event();
-                event.setData(sendCacheStatic.get(key));
-                event.getMetaData().setUserInfo(USER_INFO_AUTHORITY, sendCacheStatic.get(key).getAuthority());
-                event.setScope(new Scope(RCT_SCOPE_TRANSFORM_STATIC));
-                event.setType(Transform.class);
-                try {
-                    rsbInformerTransform.publish(event);
-                } catch (RSBException ex) {
-                    LOGGER.error("Can not publish cached static transform " + sendCacheDynamic.get(key) + ". Reason: " + ex.getMessage(), ex);
-                }
-
-                // apply workaround to avoid sending to many events at once,
-                // because otherwise spread is killing some sessions.
-                // todo: implement more efficient by sending a collection instead of all transformations one by one.
-                try {
-                    Thread.sleep(50);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    return;
-                }
-            }
+        } catch (CouldNotPerformException ex) {
+            ExceptionPrinter.printHistory("Could not publish all transformations!", ex, LOGGER);
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+            return;
         }
     }
 
@@ -291,63 +341,44 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
      */
     @Override
     public void shutdown() {
+
         if (rsbListenerTransform != null) {
             try {
-                try {
-                    if (rsbListenerTransform.isActive()) {
-                        rsbListenerTransform.deactivate();
-                    }
-                } catch (InterruptedException ex) {
-                    Thread.currentThread().interrupt();
-                    throw ex;
+                if (rsbListenerTransformWatchDog.isActive()) {
+                    rsbListenerTransformWatchDog.deactivate();
                 }
-            } catch (RSBException | InterruptedException ex) {
-                LOGGER.error("Can not deactivate rsb listener. Reason: " + ex.getMessage());
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
             }
         }
 
         if (rsbListenerSync != null) {
             try {
-                try {
-                    if (rsbListenerSync.isActive()) {
-                        rsbListenerSync.deactivate();
-                    }
-                } catch (InterruptedException ex) {
-                    Thread.currentThread().interrupt();
-                    throw ex;
+                if (rsbListenerSyncWatchDog.isActive()) {
+                    rsbListenerSyncWatchDog.deactivate();
                 }
-            } catch (RSBException | InterruptedException ex) {
-                LOGGER.error("Can not deactivate rsb listener. Reason: " + ex.getMessage());
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
             }
         }
 
         if (rsbInformerTransform != null) {
             try {
-                try {
-                    if (rsbInformerTransform.isActive()) {
-                        rsbInformerTransform.deactivate();
-                    }
-                } catch (InterruptedException ex) {
-                    Thread.currentThread().interrupt();
-                    throw ex;
+                if (rsbInformerTransformWatchDog.isActive()) {
+                    rsbInformerTransformWatchDog.deactivate();
                 }
-            } catch (RSBException | InterruptedException ex) {
-                LOGGER.error("Can not deactivate rsb listener. Reason: " + ex.getMessage());
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
             }
         }
 
         if (rsbInformerSync != null) {
             try {
-                try {
-                    if (rsbInformerSync.isActive()) {
-                        rsbInformerSync.deactivate();
-                    }
-                } catch (InterruptedException ex) {
-                    Thread.currentThread().interrupt();
-                    throw ex;
+                if (rsbInformerSyncWatchDog.isActive()) {
+                    rsbInformerSyncWatchDog.deactivate();
                 }
-            } catch (RSBException | InterruptedException ex) {
-                LOGGER.error("Can not deactivate rsb listener. Reason: " + ex.getMessage());
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
             }
         }
     }
