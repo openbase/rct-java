@@ -23,6 +23,9 @@ package org.openbase.rct;
  */
 
 import org.openbase.jps.core.JPService;
+import org.openbase.jul.exception.CouldNotPerformException;
+import org.openbase.jul.exception.NotAvailableException;
+import org.openbase.jul.exception.ShutdownInProgressException;
 import org.openbase.jul.exception.printer.ExceptionPrinter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,16 +37,37 @@ public class GlobalTransformPublisher {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GlobalTransformPublisher.class);
 
+    private static boolean shutdownInProgress = false;
     private static TransformPublisher instance;
 
-    public static synchronized TransformPublisher getInstance() {
-        if (instance == null) {
-            try {
-                instance = TransformerFactory.getInstance().createTransformPublisher(JPService.getApplicationName());
-            } catch (TransformerFactory.TransformerFactoryException ex) {
-                ExceptionPrinter.printHistory("Could not establish rct receiver connection.", ex, LOGGER);
+    static {
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            @Override
+            public void run() {
+                shutdownInProgress = true;
+                if (instance != null) {
+                    instance.shutdown();
+                    instance = null;
+                }
             }
+        });
+    }
+
+    public static synchronized TransformPublisher getInstance() throws NotAvailableException {
+        try {
+            if (shutdownInProgress) {
+                throw new ShutdownInProgressException(GlobalTransformPublisher.class.getSimpleName());
+            }
+            if (instance == null) {
+                try {
+                    instance = TransformerFactory.getInstance().createTransformPublisher(JPService.getApplicationName());
+                } catch (TransformerFactory.TransformerFactoryException ex) {
+                    throw new CouldNotPerformException("Could not establish rct publisher connection.", ex);
+                }
+            }
+            return instance;
+        } catch (CouldNotPerformException ex) {
+            throw new NotAvailableException("TransformPublisher", ex);
         }
-        return instance;
     }
 }

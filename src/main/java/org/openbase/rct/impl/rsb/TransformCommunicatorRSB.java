@@ -87,7 +87,7 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
     public void init(final TransformerConfig conf) throws TransformerException {
         try {
 
-            LOGGER.debug("registering converter");
+            LOGGER.debug("init communication");
 
             final ParticipantConfig participantConfig = RSBSharedConnectionConfig.getParticipantConfig();
 
@@ -342,44 +342,20 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
     @Override
     public void shutdown() {
 
-        if (rsbListenerTransform != null) {
-            try {
-                if (rsbListenerTransformWatchDog.isActive()) {
-                    rsbListenerTransformWatchDog.deactivate();
-                }
-            } catch (InterruptedException ex) {
-                Thread.currentThread().interrupt();
-            }
+        if (rsbListenerTransformWatchDog != null) {
+            rsbListenerTransformWatchDog.shutdown();
         }
 
-        if (rsbListenerSync != null) {
-            try {
-                if (rsbListenerSyncWatchDog.isActive()) {
-                    rsbListenerSyncWatchDog.deactivate();
-                }
-            } catch (InterruptedException ex) {
-                Thread.currentThread().interrupt();
-            }
+        if (rsbListenerSyncWatchDog != null) {
+            rsbListenerSyncWatchDog.shutdown();
         }
 
-        if (rsbInformerTransform != null) {
-            try {
-                if (rsbInformerTransformWatchDog.isActive()) {
-                    rsbInformerTransformWatchDog.deactivate();
-                }
-            } catch (InterruptedException ex) {
-                Thread.currentThread().interrupt();
-            }
+        if (rsbInformerTransformWatchDog != null) {
+            rsbInformerTransformWatchDog.shutdown();
         }
 
-        if (rsbInformerSync != null) {
-            try {
-                if (rsbInformerSyncWatchDog.isActive()) {
-                    rsbInformerSyncWatchDog.deactivate();
-                }
-            } catch (InterruptedException ex) {
-                Thread.currentThread().interrupt();
-            }
+        if (rsbInformerSyncWatchDog != null) {
+            rsbInformerSyncWatchDog.shutdown();
         }
     }
 }

@@ -22,7 +22,9 @@ package org.openbase.rct;
  * #L%
  */
 
-import org.openbase.jul.exception.printer.ExceptionPrinter;
+import org.openbase.jul.exception.CouldNotPerformException;
+import org.openbase.jul.exception.NotAvailableException;
+import org.openbase.jul.exception.ShutdownInProgressException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,16 +35,37 @@ public class GlobalTransformReceiver {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GlobalTransformReceiver.class);
 
+    private static boolean shutdownInProgress = false;
     private static TransformReceiver instance;
 
-    public static synchronized TransformReceiver getInstance() {
-        if (instance == null) {
-            try {
-                instance = TransformerFactory.getInstance().createTransformReceiver();
-            } catch (TransformerFactory.TransformerFactoryException ex) {
-                ExceptionPrinter.printHistory("Could not establish rct receiver connection.", ex, LOGGER);
+    static {
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            @Override
+            public void run() {
+                shutdownInProgress = true;
+                if (instance != null) {
+                    instance.shutdown();
+                    instance = null;
+                }
             }
+        });
+    }
+
+    public static synchronized TransformReceiver getInstance() throws NotAvailableException {
+        try {
+            if(shutdownInProgress) {
+                throw new ShutdownInProgressException(GlobalTransformReceiver.class.getSimpleName());
+            }
+            if (instance == null) {
+                try {
+                    instance = TransformerFactory.getInstance().createTransformReceiver();
+                } catch (TransformerFactory.TransformerFactoryException ex) {
+                    throw new CouldNotPerformException("Could not establish rct receiver connection.", ex);
+                }
+            }
+            return instance;
+        } catch (CouldNotPerformException ex) {
+            throw new NotAvailableException("TransformReceiver", ex);
         }
-        return instance;
     }
 }
