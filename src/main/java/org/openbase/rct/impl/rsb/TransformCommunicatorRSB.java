@@ -30,10 +30,7 @@ import org.openbase.jul.extension.rsb.com.RSBSharedConnectionConfig;
 import org.openbase.jul.extension.rsb.iface.RSBInformer;
 import org.openbase.jul.extension.rsb.iface.RSBListener;
 import org.openbase.jul.schedule.WatchDog;
-import org.openbase.rct.Transform;
-import org.openbase.rct.TransformType;
-import org.openbase.rct.TransformerConfig;
-import org.openbase.rct.TransformerException;
+import org.openbase.rct.*;
 import org.openbase.rct.impl.TransformCommunicator;
 import org.openbase.rct.impl.TransformListener;
 import org.slf4j.Logger;
@@ -168,15 +165,24 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
                 switch (type) {
                     case STATIC:
                         if (transform.equalsWithoutTime(sendCacheStatic.get(cacheKey))) {
-                            // we are done if transformation is already known
-                            return;
+                            if (transform.equalsWithoutTime(GlobalTransformReceiver.getInstance().lookupTransform(transform.getFrameParent(), transform.getFrameChild(), System.currentTimeMillis()))) {
+                                LOGGER.debug("Publishing static transform from " + rsbInformerTransform.getId() + " done because Transformation[" + cacheKey + "] already known.");
+                                // we are done if transformation is already known
+                                return;
+                            }
+                            LOGGER.warn("Publishing static transform from " + rsbInformerTransform.getId() + " again because Transformation[" + cacheKey + "] sync failed.");
                         }
                         sendCacheStatic.put(cacheKey, transform);
                         event.setScope(new Scope(RCT_SCOPE_TRANSFORM_STATIC));
                         break;
                     case DYNAMIC:
                         if (transform.equals(sendCacheDynamic.get(cacheKey))) {
-                            // we are done if transformation is already known
+                            if (transform.equalsWithoutTime(GlobalTransformReceiver.getInstance().lookupTransform(transform.getFrameParent(), transform.getFrameChild(), System.currentTimeMillis()))) {
+                                LOGGER.debug("Publishing dynamic transform from " + rsbInformerTransform.getId() + " done because Transformation[" + cacheKey + "] already known.");
+                                // we are done if transformation is already known
+                                return;
+                            }
+                            LOGGER.warn("Publishing dynamic transform from " + rsbInformerTransform.getId() + " again because Transformation[" + cacheKey + "] sync failed.");
                             return;
                         }
                         sendCacheDynamic.put(cacheKey, transform);
@@ -186,6 +192,7 @@ public class TransformCommunicatorRSB implements TransformCommunicator {
                         throw new TransformerException("Unknown TransformType: " + type.name());
                 }
 
+                LOGGER.debug("Publishing transform from " + rsbInformerTransform.getId() + " initiated.");
                 rsbInformerTransform.publish(event);
             }
         } catch (CouldNotPerformException ex) {
