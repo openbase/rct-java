@@ -70,4 +70,17 @@ public class GlobalTransformPublisher {
             throw new NotAvailableException("TransformPublisher", ex);
         }
     }
+
+    /**
+     * Method shutdowns the global instance.
+     * Method is limited to the test mode.
+     */
+    public static synchronized void shutdown() {
+        if (JPService.testMode()) {
+            if (instance != null) {
+                instance.shutdown();
+                instance = null;
+            }
+        }
+    }
 }
