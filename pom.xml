@@ -249,7 +249,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.target.version>1.8</java.target.version>
         <java.source.version>1.8</java.source.version>
-	    <dependency.openbase.jul.version>2.0-SNAPSHOT</dependency.openbase.jul.version>
+	    <dependency.openbase.jul.version>[2.0,2.1-alpha)</dependency.openbase.jul.version>
         <skipTests>false</skipTests>
     </properties>
     
