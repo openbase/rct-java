@@ -3,7 +3,7 @@
 
     <groupId>org.openbase</groupId>
     <artifactId>rct</artifactId>
-    <version>2.0.0</version>
+    <version>2.0.1-SNAPSHOT</version>
 
     <name>RCT</name>
     <inceptionYear>2015</inceptionYear>
@@ -93,7 +93,7 @@
         <connection>scm:git:https://github.com/openbase/rct-java.git</connection>
         <developerConnection>scm:git:https://github.com/openbase/rct-java.git</developerConnection>
         <url>https://github.com/openbase/rct-java.git</url>
-      <tag>v2.0.0</tag>
+      <tag>HEAD</tag>
   </scm>
 
     <build>
